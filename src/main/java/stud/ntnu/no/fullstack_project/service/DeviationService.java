@@ -201,6 +201,7 @@ public class DeviationService {
     comment.setDeviation(deviation);
     comment.setAuthor(currentUser);
     comment.setContent(request.content());
+    comment.setCreatedAt(LocalDateTime.now());
     deviation.getComments().add(comment);
 
     deviationRepository.save(deviation);
