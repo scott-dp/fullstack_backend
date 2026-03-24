@@ -46,7 +46,7 @@ public class AuthService {
     AppUser user = new AppUser();
     user.setUsername(request.username());
     user.setPassword(passwordEncoder.encode(request.password()));
-    user.getRoles().add(Role.ROLE_USER);
+    user.getRoles().add(Role.ROLE_STAFF);
     appUserRepository.save(user);
 
     return authenticate(request, response);

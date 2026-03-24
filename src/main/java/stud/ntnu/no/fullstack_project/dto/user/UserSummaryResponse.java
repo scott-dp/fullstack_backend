@@ -2,13 +2,10 @@ package stud.ntnu.no.fullstack_project.dto.user;
 
 import java.util.Set;
 
-public record CurrentUserResponse(
+public record UserSummaryResponse(
     Long id,
     String username,
     String firstName,
     String lastName,
-    String email,
-    Set<String> roles,
-    Long organizationId,
-    String organizationName
+    Set<String> roles
 ) {}
