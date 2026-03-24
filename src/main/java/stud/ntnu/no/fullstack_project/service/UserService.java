@@ -25,7 +25,6 @@ import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
  * <p>Provides business logic for retrieving user profiles, updating profiles,
  * listing organization members, and admin-level user creation.</p>
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Slf4j

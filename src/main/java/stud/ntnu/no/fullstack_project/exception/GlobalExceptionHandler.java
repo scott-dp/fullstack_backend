@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * <p>Each handler method maps a specific exception type to an HTTP status code
  * and a human-readable error message.</p>
  */
-@Slf4j
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

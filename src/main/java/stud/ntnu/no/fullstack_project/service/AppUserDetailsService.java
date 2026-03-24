@@ -15,7 +15,6 @@ import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
  * <p>Loaded by the authentication provider to resolve a username into a fully
  * populated {@link UserDetails} instance during authentication.</p>
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Slf4j

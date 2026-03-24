@@ -4,10 +4,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,8 +29,7 @@ class AuthControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   void registerReturns200() throws Exception {
@@ -131,13 +131,12 @@ class AuthControllerTest {
         .andExpect(status().isOk())
         .andReturn().getResponse().getHeader("Set-Cookie");
 
-    // Extract the cookie name and value
-    // Cookie format: auth-token=<jwt>; Path=/; ...
     assertNotNull(setCookie);
-    String cookieHeader = setCookie.split(";")[0]; // "auth-token=<jwt>"
+    String[] cookieParts = setCookie.split(";", 2)[0].split("=", 2);
+    Cookie authCookie = new Cookie(cookieParts[0], cookieParts[1]);
 
     mockMvc.perform(get("/api/auth/status")
-            .header("Cookie", cookieHeader))
+            .cookie(authCookie))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.authenticated").value(true))
         .andExpect(jsonPath("$.user.username").value("cookieuser"));

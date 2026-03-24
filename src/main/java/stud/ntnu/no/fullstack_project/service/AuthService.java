@@ -26,7 +26,6 @@ import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
  * <p>Handles registration, login, logout, and authentication status checks
  * using JWT tokens stored in HTTP-only cookies.</p>
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Slf4j
