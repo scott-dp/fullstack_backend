@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-test-docs:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,8 +21,38 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x mvnw
 
-      - name: Run backend tests
-        run: ./mvnw -B test
+      - name: Run backend tests and generate coverage
+        run: ./mvnw -B verify
 
       - name: Build backend package
         run: ./mvnw -B package -DskipTests
+
+      - name: Generate Javadoc
+        if: always()
+        run: ./mvnw -B javadoc:javadoc
+
+      - name: Upload backend coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: |
+            target/site/jacoco
+            target/jacoco.exec
+          if-no-files-found: warn
+
+      - name: Upload backend Javadoc
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-javadocs
+          path: target/site/apidocs
+          if-no-files-found: warn
+
+      - name: Upload backend test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: target/surefire-reports
+          if-no-files-found: warn
