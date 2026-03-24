@@ -2,19 +2,30 @@ package stud.ntnu.no.fullstack_project.service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.Random;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import stud.ntnu.no.fullstack_project.config.JwtService;
-import stud.ntnu.no.fullstack_project.dto.auth.AuthRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthResponse;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthStatusResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.MessageResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.RegisterRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.RegistrationResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.VerificationResponse;
 import stud.ntnu.no.fullstack_project.dto.user.CurrentUserResponse;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.Role;
@@ -30,12 +41,14 @@ import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
+  private static final Random RANDOM = new Random();
 
   private final AppUserRepository appUserRepository;
   private final AuthenticationManager authenticationManager;
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
   private final UserService userService;
+  private final VerificationEmailService verificationEmailService;
 
   @Value("${security.jwt.access-token-expiration}")
   private long accessTokenExpiration;
@@ -46,6 +59,12 @@ public class AuthService {
   @Value("${app.security.cookie-secure}")
   private boolean cookieSecure;
 
+  @Value("${app.frontend-url}")
+  private String frontendUrl;
+
+  @Value("${app.auth.email-code-expiration-minutes:10}")
+  private long emailCodeExpirationMinutes;
+
   /**
    * Registers a new user and immediately authenticates that user.
    *
@@ -53,21 +72,36 @@ public class AuthService {
    * @param response HTTP response used to write the auth cookie
    * @return authentication response for the newly registered user
    */
-  public AuthResponse register(AuthRequest request, HttpServletResponse response) {
-    log.info("Attempting to register user username={}", request.username());
+  public RegistrationResponse register(RegisterRequest request) {
+    String normalizedEmail = normalizeEmail(request.email());
+    log.info("Attempting to register user username={} email={}", request.username(), normalizedEmail);
     if (appUserRepository.existsByUsername(request.username())) {
       log.warn("Registration rejected because username is already taken username={}", request.username());
       throw new IllegalArgumentException("Username is already taken");
     }
+    if (appUserRepository.existsByEmail(normalizedEmail)) {
+      log.warn("Registration rejected because email is already in use email={}", normalizedEmail);
+      throw new IllegalArgumentException("Email is already in use");
+    }
 
     AppUser user = new AppUser();
     user.setUsername(request.username());
+    user.setEmail(normalizedEmail);
     user.setPassword(passwordEncoder.encode(request.password()));
     user.getRoles().add(Role.ROLE_STAFF);
+    user.setEmailVerified(false);
+    user.setEmailVerificationToken(UUID.randomUUID().toString());
+    user.setEmailVerificationExpiresAt(LocalDateTime.now().plusHours(24));
     appUserRepository.save(user);
-    log.info("User registered successfully username={} roles={}", user.getUsername(), user.getRoles());
+    String verificationLink = buildVerificationLink(user.getEmailVerificationToken());
+    verificationEmailService.sendVerificationEmail(user.getEmail(), verificationLink);
+    log.info("User registered successfully username={} email={} verificationLink={}",
+        user.getUsername(), user.getEmail(), verificationLink);
 
-    return authenticate(request, response);
+    return new RegistrationResponse(
+        "Registration successful. Verify your email before logging in.",
+        verificationLink
+    );
   }
 
   /**
@@ -77,13 +111,20 @@ public class AuthService {
    * @param response HTTP response used to write the auth cookie
    * @return authentication response containing the user profile
    */
-  public AuthResponse authenticate(AuthRequest request, HttpServletResponse response) {
-    log.info("Attempting to authenticate user username={}", request.username());
+  public AuthResponse authenticate(LoginRequest request, HttpServletResponse response) {
+    AppUser account = appUserRepository.findByUsernameOrEmail(request.identifier(), normalizeEmail(request.identifier()))
+        .orElseThrow(() -> new BadCredentialsException("Invalid username, email, or password"));
+
+    if (!account.isEmailVerified()) {
+      throw new IllegalArgumentException("Verify your email before logging in");
+    }
+
+    log.info("Attempting to authenticate user username={} identifier={}", account.getUsername(), request.identifier());
     authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(request.username(), request.password())
+        new UsernamePasswordAuthenticationToken(account.getUsername(), request.password())
     );
 
-    AppUser user = appUserRepository.findByUsername(request.username())
+    AppUser user = appUserRepository.findByUsername(account.getUsername())
         .orElseThrow(() -> new IllegalArgumentException("User not found"));
     String token = jwtService.generateToken(user);
     addCookie(response, token, accessTokenExpiration);
@@ -91,6 +132,97 @@ public class AuthService {
 
     CurrentUserResponse currentUser = userService.mapToResponse(user);
     return new AuthResponse("Authentication successful", currentUser);
+  }
+
+  /**
+   * Emails a one-time login code to a verified account.
+   *
+   * @param request verified email request
+   * @return status message
+   */
+  public MessageResponse requestEmailLoginCode(EmailCodeRequest request) {
+    AppUser user = appUserRepository.findByEmail(normalizeEmail(request.email()))
+        .orElseThrow(() -> new IllegalArgumentException("No user found for that email"));
+
+    if (!user.isEmailVerified()) {
+      throw new IllegalArgumentException("Verify your email before requesting a login code");
+    }
+
+    String code = generateEmailLoginCode();
+    user.setEmailLoginCode(code);
+    user.setEmailLoginCodeExpiresAt(LocalDateTime.now().plusMinutes(emailCodeExpirationMinutes));
+    appUserRepository.save(user);
+    verificationEmailService.sendLoginCodeEmail(user.getEmail(), code);
+    log.info("Issued email login code for user username={} email={}", user.getUsername(), user.getEmail());
+    return new MessageResponse("A login code has been sent to your email.");
+  }
+
+  /**
+   * Authenticates a user with a verified email address and one-time code.
+   *
+   * @param request email code login request
+   * @param response HTTP response used to write the auth cookie
+   * @return authentication response containing the user profile
+   */
+  public AuthResponse authenticateWithEmailCode(
+      EmailCodeLoginRequest request,
+      HttpServletResponse response
+  ) {
+    AppUser user = appUserRepository.findByEmail(normalizeEmail(request.email()))
+        .orElseThrow(() -> new BadCredentialsException("Invalid email or login code"));
+
+    if (!user.isEmailVerified()) {
+      throw new IllegalArgumentException("Verify your email before logging in");
+    }
+    if (user.getEmailLoginCode() == null || user.getEmailLoginCodeExpiresAt() == null) {
+      throw new BadCredentialsException("Invalid email or login code");
+    }
+    if (user.getEmailLoginCodeExpiresAt().isBefore(LocalDateTime.now())) {
+      throw new IllegalArgumentException("Login code has expired");
+    }
+    if (!user.getEmailLoginCode().equals(request.code())) {
+      throw new BadCredentialsException("Invalid email or login code");
+    }
+
+    user.setEmailLoginCode(null);
+    user.setEmailLoginCodeExpiresAt(null);
+    appUserRepository.save(user);
+
+    String token = jwtService.generateToken(user);
+    addCookie(response, token, accessTokenExpiration);
+    log.info("Email code authentication successful username={} email={}", user.getUsername(), user.getEmail());
+    return new AuthResponse("Authentication successful", userService.mapToResponse(user));
+  }
+
+  /**
+   * Verifies a registration token and activates the corresponding account.
+   *
+   * @param token the verification token from the email link
+   * @return verification status response
+   */
+  public VerificationResponse verifyEmail(String token) {
+    if (token == null || token.isBlank()) {
+      throw new IllegalArgumentException("Verification token is required");
+    }
+
+    AppUser user = appUserRepository.findByEmailVerificationToken(token.trim())
+        .orElseThrow(() -> new IllegalArgumentException("Verification token was not found"));
+
+    if (user.isEmailVerified()) {
+      return new VerificationResponse("Email is already verified. You can log in.");
+    }
+
+    if (user.getEmailVerificationExpiresAt() == null
+        || user.getEmailVerificationExpiresAt().isBefore(LocalDateTime.now())) {
+      throw new IllegalArgumentException("Verification token has expired");
+    }
+
+    user.setEmailVerified(true);
+    user.setEmailVerificationToken(null);
+    user.setEmailVerificationExpiresAt(null);
+    appUserRepository.save(user);
+    log.info("Email verified for user username={} email={}", user.getUsername(), user.getEmail());
+    return new VerificationResponse("Email verified successfully. You can now log in.");
   }
 
   /**
@@ -147,5 +279,17 @@ public class AuthService {
 
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     log.debug("Auth cookie updated cookieName={} secure={} maxAgeMillis={}", cookieName, cookieSecure, maxAgeMillis);
+  }
+
+  private String normalizeEmail(String email) {
+    return email.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private String buildVerificationLink(String token) {
+    return frontendUrl + "/verify-email?token=" + token;
+  }
+
+  private String generateEmailLoginCode() {
+    return String.format("%06d", RANDOM.nextInt(1_000_000));
   }
 }

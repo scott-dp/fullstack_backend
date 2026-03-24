@@ -56,6 +56,7 @@ public class DataInitializer implements CommandLineRunner {
     admin.setFirstName("System");
     admin.setLastName("Administrator");
     admin.setEmail("admin@everest.no");
+    admin.setEmailVerified(true);
     admin.setOrganization(org);
     admin.setRoles(Set.of(Role.ROLE_ADMIN));
     userRepository.save(admin);
@@ -66,6 +67,7 @@ public class DataInitializer implements CommandLineRunner {
     manager.setFirstName("Restaurant");
     manager.setLastName("Manager");
     manager.setEmail("manager@everest.no");
+    manager.setEmailVerified(true);
     manager.setOrganization(org);
     manager.setRoles(Set.of(Role.ROLE_MANAGER));
     userRepository.save(manager);
@@ -76,6 +78,7 @@ public class DataInitializer implements CommandLineRunner {
     staff.setFirstName("Kitchen");
     staff.setLastName("Staff");
     staff.setEmail("staff@everest.no");
+    staff.setEmailVerified(true);
     staff.setOrganization(org);
     staff.setRoles(Set.of(Role.ROLE_STAFF));
     userRepository.save(staff);

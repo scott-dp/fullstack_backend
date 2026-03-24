@@ -13,7 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import stud.ntnu.no.fullstack_project.dto.auth.AuthRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.RegisterRequest;
+import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 
 /**
  * Integration tests for AuthController.
@@ -29,24 +33,27 @@ class AuthControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
+  @Autowired
+  private AppUserRepository appUserRepository;
+
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   void registerReturns200() throws Exception {
-    AuthRequest request = new AuthRequest("newuser", "password123");
+    RegisterRequest request = new RegisterRequest("newuser", "newuser@example.com", "password123");
 
     mockMvc.perform(post("/api/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value("Authentication successful"))
-        .andExpect(jsonPath("$.user.username").value("newuser"));
+        .andExpect(jsonPath("$.message").value("Registration successful. Verify your email before logging in."))
+        .andExpect(jsonPath("$.verificationLink").exists());
   }
 
   @Test
   void loginWithSeededUserReturns200() throws Exception {
     // DataInitializer seeds an admin user with password "admin123"
-    AuthRequest request = new AuthRequest("admin", "admin123");
+    LoginRequest request = new LoginRequest("admin@everest.no", "admin123");
 
     mockMvc.perform(post("/api/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
@@ -58,7 +65,7 @@ class AuthControllerTest {
 
   @Test
   void loginWithWrongPasswordReturns401() throws Exception {
-    AuthRequest request = new AuthRequest("admin", "wrongpassword");
+    LoginRequest request = new LoginRequest("admin", "wrongpassword");
 
     mockMvc.perform(post("/api/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
@@ -77,7 +84,7 @@ class AuthControllerTest {
   @Test
   void registerWithShortUsernameReturnsBadRequest() throws Exception {
     // Username min 3 chars per @Size(min = 3) validation
-    AuthRequest request = new AuthRequest("ab", "password123");
+    RegisterRequest request = new RegisterRequest("ab", "short@example.com", "password123");
 
     mockMvc.perform(post("/api/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +95,7 @@ class AuthControllerTest {
   @Test
   void registerWithShortPasswordReturnsBadRequest() throws Exception {
     // Password min 6 chars per @Size(min = 6) validation
-    AuthRequest request = new AuthRequest("validuser", "short");
+    RegisterRequest request = new RegisterRequest("validuser", "valid@example.com", "short");
 
     mockMvc.perform(post("/api/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
@@ -98,7 +105,7 @@ class AuthControllerTest {
 
   @Test
   void registerDuplicateUsernameReturnsBadRequest() throws Exception {
-    AuthRequest request = new AuthRequest("dupuser", "password123");
+    RegisterRequest request = new RegisterRequest("dupuser", "dup@example.com", "password123");
 
     // First registration should succeed
     mockMvc.perform(post("/api/auth/register")
@@ -121,11 +128,9 @@ class AuthControllerTest {
 
   @Test
   void statusWithValidCookieReturnsAuthenticated() throws Exception {
-    // Register a user to get a valid auth cookie
-    AuthRequest request = new AuthRequest("cookieuser", "password123");
+    LoginRequest request = new LoginRequest("admin", "admin123");
 
-    // Capture the Set-Cookie header from registration
-    String setCookie = mockMvc.perform(post("/api/auth/register")
+    String setCookie = mockMvc.perform(post("/api/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
@@ -139,7 +144,77 @@ class AuthControllerTest {
             .cookie(authCookie))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.authenticated").value(true))
-        .andExpect(jsonPath("$.user.username").value("cookieuser"));
+        .andExpect(jsonPath("$.user.username").value("admin"));
+  }
+
+  @Test
+  void loginWithUnverifiedUserReturnsBadRequest() throws Exception {
+    RegisterRequest registerRequest = new RegisterRequest("pendinguser", "pending@example.com", "password123");
+    mockMvc.perform(post("/api/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isOk());
+
+    LoginRequest loginRequest = new LoginRequest("pending@example.com", "password123");
+    mockMvc.perform(post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Verify your email before logging in"));
+  }
+
+  @Test
+  void verifyEmailActivatesRegisteredUser() throws Exception {
+    RegisterRequest registerRequest = new RegisterRequest("verifyme", "verifyme@example.com", "password123");
+
+    String verificationLink = mockMvc.perform(post("/api/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+
+    String token = objectMapper.readTree(verificationLink).get("verificationLink").asText()
+        .replace("http://localhost:5173/verify-email?token=", "");
+
+    mockMvc.perform(get("/api/auth/verify").param("token", token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Email verified successfully. You can now log in."));
+
+    LoginRequest loginRequest = new LoginRequest("verifyme@example.com", "password123");
+    mockMvc.perform(post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.user.username").value("verifyme"));
+  }
+
+  @Test
+  void requestEmailCodeForVerifiedUserReturns200() throws Exception {
+    EmailCodeRequest request = new EmailCodeRequest("admin@everest.no");
+
+    mockMvc.perform(post("/api/auth/email-code/request")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("A login code has been sent to your email."));
+  }
+
+  @Test
+  void emailCodeLoginWorksForVerifiedUser() throws Exception {
+    mockMvc.perform(post("/api/auth/email-code/request")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(new EmailCodeRequest("admin@everest.no"))))
+        .andExpect(status().isOk());
+
+    String code = appUserRepository.findByEmail("admin@everest.no")
+        .orElseThrow()
+        .getEmailLoginCode();
+
+    mockMvc.perform(post("/api/auth/email-code/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(new EmailCodeLoginRequest("admin@everest.no", code))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.user.username").value("admin"));
   }
 
   private void assertNotNull(Object obj) {

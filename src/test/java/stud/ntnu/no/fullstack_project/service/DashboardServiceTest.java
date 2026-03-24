@@ -91,6 +91,9 @@ class DashboardServiceTest {
     DashboardResponse response = dashboardService.getDashboard(testUser);
 
     assertNotNull(response);
+    assertTrue(response.organizationAssigned());
+    assertEquals("Test Org", response.organizationName());
+    assertNull(response.message());
     assertEquals(3L, response.totalChecklistTemplates());
     assertEquals(7L, response.checklistsCompletedToday());
     assertEquals(3L, response.temperatureAlertsToday()); // 2 WARNING + 1 CRITICAL
@@ -122,6 +125,7 @@ class DashboardServiceTest {
     DashboardResponse response = dashboardService.getDashboard(testUser);
 
     assertNotNull(response);
+    assertTrue(response.organizationAssigned());
     assertEquals(0L, response.totalChecklistTemplates());
     assertEquals(0L, response.checklistsCompletedToday());
     assertEquals(0L, response.temperatureAlertsToday());
@@ -200,5 +204,24 @@ class DashboardServiceTest {
     verify(checklistTemplateRepository).findByOrganizationIdAndActiveTrue(42L);
     verify(deviationRepository).countByOrganizationIdAndStatus(42L, DeviationStatus.OPEN);
     verify(notificationRepository).countByUserIdAndReadFalse(5L);
+  }
+
+  @Test
+  void getDashboard_returnsEmptyStateWhenUserHasNoOrganization() {
+    testUser.setOrganization(null);
+    when(notificationRepository.countByUserIdAndReadFalse(1L)).thenReturn(3L);
+
+    DashboardResponse response = dashboardService.getDashboard(testUser);
+
+    assertFalse(response.organizationAssigned());
+    assertNull(response.organizationName());
+    assertEquals("You have not joined an organization yet. Accept an invitation to get started.", response.message());
+    assertEquals(0L, response.totalChecklistTemplates());
+    assertEquals(0L, response.checklistsCompletedToday());
+    assertEquals(0L, response.temperatureAlertsToday());
+    assertEquals(0L, response.openDeviations());
+    assertEquals(0L, response.inProgressDeviations());
+    assertEquals(3L, response.unreadNotifications());
+    verifyNoInteractions(checklistTemplateRepository, checklistCompletionRepository, temperatureLogRepository, deviationRepository);
   }
 }

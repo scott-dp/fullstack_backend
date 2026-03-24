@@ -39,6 +39,24 @@ public class DashboardService {
    * @return dashboard response containing all aggregated statistics
    */
   public DashboardResponse getDashboard(AppUser currentUser) {
+    long unreadNotifications = notificationRepository
+        .countByUserIdAndReadFalse(currentUser.getId());
+
+    if (currentUser.getOrganization() == null) {
+      log.info("Returning empty dashboard for user={} because no organization is assigned", currentUser.getUsername());
+      return new DashboardResponse(
+          false,
+          null,
+          "You have not joined an organization yet. Accept an invitation to get started.",
+          0,
+          0,
+          0,
+          0,
+          0,
+          unreadNotifications
+      );
+    }
+
     Long orgId = currentUser.getOrganization().getId();
     LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
 
@@ -62,10 +80,10 @@ public class DashboardService {
     long inProgressDeviations = deviationRepository
         .countByOrganizationIdAndStatus(orgId, DeviationStatus.IN_PROGRESS);
 
-    long unreadNotifications = notificationRepository
-        .countByUserIdAndReadFalse(currentUser.getId());
-
     return new DashboardResponse(
+        true,
+        currentUser.getOrganization().getName(),
+        null,
         totalChecklistTemplates,
         checklistsCompletedToday,
         temperatureAlertsToday,

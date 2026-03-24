@@ -32,7 +32,7 @@ public class AppUserDetailsService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     log.debug("Loading user details for username={}", username);
-    return appUserRepository.findByUsername(username)
+    return appUserRepository.findByUsernameOrEmail(username, username)
         .orElseThrow(() -> {
           log.warn("User details lookup failed username={}", username);
           return new UsernameNotFoundException("User not found: " + username);

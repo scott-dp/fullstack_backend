@@ -1,0 +1,97 @@
+package stud.ntnu.no.fullstack_project.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+/**
+ * Service responsible for sending account verification emails.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class VerificationEmailService {
+
+  private final JavaMailSender mailSender;
+
+  @Value("${app.mail.enabled:false}")
+  private boolean mailEnabled;
+
+  @Value("${app.mail.from}")
+  private String fromAddress;
+
+  /**
+   * Sends the verification email for a new account.
+   *
+   * @param recipientEmail verified recipient address
+   * @param verificationLink verification URL to include in the email
+   */
+  public void sendVerificationEmail(String recipientEmail, String verificationLink) {
+    if (!mailEnabled) {
+      log.info(
+          "Verification email sending is disabled. recipient={} verificationLink={}",
+          recipientEmail,
+          verificationLink
+      );
+      return;
+    }
+
+    SimpleMailMessage message = new SimpleMailMessage();
+    message.setFrom(fromAddress);
+    message.setTo(recipientEmail);
+    message.setSubject("Verify your IK System account");
+    message.setText("""
+        Welcome to IK System.
+
+        Verify your email address before logging in by opening this link:
+        %s
+
+        If you did not create this account, you can ignore this message.
+        """.formatted(verificationLink));
+
+    try {
+      mailSender.send(message);
+      log.info("Sent verification email to {}", recipientEmail);
+    } catch (MailException exception) {
+      log.error("Failed to send verification email to {}", recipientEmail, exception);
+      throw new IllegalStateException("Failed to send verification email");
+    }
+  }
+
+  /**
+   * Sends a one-time login code to a verified email address.
+   *
+   * @param recipientEmail recipient email
+   * @param code six-digit login code
+   */
+  public void sendLoginCodeEmail(String recipientEmail, String code) {
+    if (!mailEnabled) {
+      log.info("Login code email sending is disabled. recipient={} code={}", recipientEmail, code);
+      return;
+    }
+
+    SimpleMailMessage message = new SimpleMailMessage();
+    message.setFrom(fromAddress);
+    message.setTo(recipientEmail);
+    message.setSubject("Your IK System login code");
+    message.setText("""
+        Use this one-time code to sign in to IK System:
+
+        %s
+
+        The code expires in 10 minutes.
+        """.formatted(code));
+
+    try {
+      mailSender.send(message);
+      log.info("Sent login code email to {}", recipientEmail);
+    } catch (MailException exception) {
+      log.error("Failed to send login code email to {}", recipientEmail, exception);
+      throw new IllegalStateException("Failed to send login code email");
+    }
+  }
+}

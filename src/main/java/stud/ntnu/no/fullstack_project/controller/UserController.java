@@ -98,9 +98,10 @@ public class UserController {
   public ResponseEntity<List<UserSummaryResponse>> listUsers(
       @AuthenticationPrincipal AppUser currentUser
   ) {
-    log.info("Listing users for orgId={}", currentUser.getOrganization().getId());
+    Long organizationId = currentUser.getOrganization() != null ? currentUser.getOrganization().getId() : null;
+    log.info("Listing users for orgId={}", organizationId);
     return ResponseEntity.ok(
-        userService.listUsersInOrganization(currentUser.getOrganization().getId())
+        userService.listUsersInOrganization(organizationId)
     );
   }
 
