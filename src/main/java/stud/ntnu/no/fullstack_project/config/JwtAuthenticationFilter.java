@@ -17,6 +17,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import stud.ntnu.no.fullstack_project.service.AppUserDetailsService;
 
+/**
+ * HTTP filter that extracts a JWT from the authentication cookie and populates
+ * the Spring Security context when the token is valid.
+ *
+ * <p>Public paths (auth, health, Swagger, H2 console) are bypassed.</p>
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +34,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Value("${app.security.cookie-name}")
   private String cookieName;
 
+  /**
+   * Processes each incoming request to check for a valid JWT cookie and set the
+   * authentication context if found.
+   *
+   * @param request     the HTTP request
+   * @param response    the HTTP response
+   * @param filterChain the filter chain to delegate to
+   * @throws ServletException if a servlet error occurs
+   * @throws IOException      if an I/O error occurs
+   */
   @Override
   protected void doFilterInternal(
       HttpServletRequest request,
@@ -61,7 +77,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     try {
       username = jwtService.extractUsername(token);
     } catch (RuntimeException exception) {
-      log.warn("JWT extraction failed for requestUri={} error={}", requestUri, exception.getMessage());
+      log.debug("Failed to extract username from JWT token");
       filterChain.doFilter(request, response);
       return;
     }
@@ -83,6 +99,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
+  /**
+   * Extracts the JWT token value from the request cookies.
+   *
+   * @param cookies the request cookies, or {@code null}
+   * @return the JWT token string, or {@code null} if not found
+   */
   private String extractToken(Cookie[] cookies) {
     if (cookies == null) {
       return null;

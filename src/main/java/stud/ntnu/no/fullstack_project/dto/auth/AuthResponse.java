@@ -4,17 +4,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import stud.ntnu.no.fullstack_project.dto.user.CurrentUserResponse;
 
 /**
- * Response payload returned after successful authentication-related operations.
+ * Response payload returned after a successful authentication or registration.
  *
- * @param message human-readable status message for the client
- * @param user the authenticated or newly registered user
+ * <p>Wraps a human-readable message together with the authenticated user's profile.</p>
+ *
+ * @param message human-readable status message
+ * @param user    profile details of the authenticated user
  */
-@Schema(description = "Authentication response returned after a successful login or registration.")
+@Schema(description = "Response returned after a successful authentication or registration.")
 public record AuthResponse(
     @Schema(description = "Human-readable status message.", example = "Authentication successful")
     String message,
 
-    @Schema(description = "Representation of the authenticated user returned to the client.")
+    @Schema(description = "Profile details of the authenticated user.")
     CurrentUserResponse user
-) {
-}
+) {}

@@ -5,25 +5,27 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * Standard error payload returned by the global exception handler.
+ * Standard error response body returned by the API when a request fails.
  *
- * @param timestamp timestamp of when the error response was generated
- * @param status HTTP status code of the response
- * @param message top-level error message
- * @param errors optional field-level validation errors
+ * <p>Contains a timestamp, HTTP status code, a human-readable message, and an
+ * optional map of field-level validation errors.</p>
+ *
+ * @param timestamp when the error occurred
+ * @param status    HTTP status code
+ * @param message   human-readable error description
+ * @param errors    field-level validation errors (may be empty)
  */
-@Schema(description = "Standardized error payload returned when a request fails.")
+@Schema(description = "Standard error response body returned when a request fails.")
 public record ApiError(
-    @Schema(description = "Timestamp of the error response.", example = "2026-03-23T14:20:00Z")
+    @Schema(description = "Timestamp when the error occurred.", example = "2025-01-15T10:30:00Z")
     Instant timestamp,
 
-    @Schema(description = "HTTP status code of the response.", example = "400")
+    @Schema(description = "HTTP status code.", example = "400")
     int status,
 
-    @Schema(description = "Top-level error message.", example = "Validation failed")
+    @Schema(description = "Human-readable error description.", example = "Validation failed")
     String message,
 
-    @Schema(description = "Optional map of field-specific validation errors.")
+    @Schema(description = "Map of field-level validation errors. Keys are field names, values are error messages.")
     Map<String, String> errors
-) {
-}
+) {}

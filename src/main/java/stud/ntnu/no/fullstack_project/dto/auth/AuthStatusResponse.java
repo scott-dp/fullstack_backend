@@ -4,17 +4,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import stud.ntnu.no.fullstack_project.dto.user.CurrentUserResponse;
 
 /**
- * Response payload for authentication status checks.
+ * Response payload indicating whether the caller is currently authenticated.
  *
- * @param authenticated whether the current request is associated with a valid auth cookie
- * @param user the resolved authenticated user, or {@code null} if anonymous
+ * <p>When {@code authenticated} is {@code true} the {@code user} field contains
+ * the current user's profile; otherwise it is {@code null}.</p>
+ *
+ * @param authenticated whether the caller holds a valid session
+ * @param user          profile of the authenticated user, or {@code null}
  */
-@Schema(description = "Authentication status response for the current request context.")
+@Schema(description = "Response indicating the current authentication status of the caller.")
 public record AuthStatusResponse(
-    @Schema(description = "Whether the current request is authenticated.", example = "true")
+    @Schema(description = "Whether the caller holds a valid authentication cookie.", example = "true")
     boolean authenticated,
 
-    @Schema(description = "Authenticated user details when a valid auth cookie is present.")
+    @Schema(description = "Profile of the authenticated user, or null if not authenticated.")
     CurrentUserResponse user
-) {
-}
+) {}

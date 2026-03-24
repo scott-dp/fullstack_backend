@@ -14,20 +14,11 @@ import jakarta.validation.constraints.Size;
  */
 @Schema(description = "Request payload containing credentials for registration or login.")
 public record AuthRequest(
-    @Schema(
-        description = "Unique username used to identify the user account.",
-        example = "scott"
-    )
-    @NotBlank
-    @Size(min = 3, max = 50)
+    @Schema(description = "Unique username used to identify the user account.", example = "scott")
+    @NotBlank @Size(min = 3, max = 50)
     String username,
 
-    @Schema(
-        description = "Raw password provided by the client. It is hashed before persistence.",
-        example = "superSecret123"
-    )
-    @NotBlank
-    @Size(min = 6, max = 255)
+    @Schema(description = "Raw password provided by the client. It is hashed before persistence.", example = "superSecret123")
+    @NotBlank @Size(min = 6, max = 255)
     String password
-) {
-}
+) {}

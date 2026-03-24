@@ -20,6 +20,12 @@ import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.Role;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 
+/**
+ * Service responsible for user authentication operations.
+ *
+ * <p>Handles registration, login, logout, and authentication status checks
+ * using JWT tokens stored in HTTP-only cookies.</p>
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -43,13 +49,12 @@ public class AuthService {
   /**
    * Registers a new user and immediately authenticates that user.
    *
-   * @param request incoming credential payload
+   * @param request  incoming credential payload
    * @param response HTTP response used to write the auth cookie
    * @return authentication response for the newly registered user
    */
   public AuthResponse register(AuthRequest request, HttpServletResponse response) {
     log.info("Attempting to register user username={}", request.username());
-
     if (appUserRepository.existsByUsername(request.username())) {
       log.warn("Registration rejected because username is already taken username={}", request.username());
       throw new IllegalArgumentException("Username is already taken");
@@ -58,7 +63,7 @@ public class AuthService {
     AppUser user = new AppUser();
     user.setUsername(request.username());
     user.setPassword(passwordEncoder.encode(request.password()));
-    user.getRoles().add(Role.ROLE_USER);
+    user.getRoles().add(Role.ROLE_STAFF);
     appUserRepository.save(user);
     log.info("User registered successfully username={} roles={}", user.getUsername(), user.getRoles());
 
@@ -66,14 +71,14 @@ public class AuthService {
   }
 
   /**
-   * Authenticates an existing user and writes the JWT cookie to the response.
+   * Authenticates a user with the supplied credentials and sets a JWT cookie.
    *
-   * @param request incoming credential payload
+   * @param request  incoming credential payload
    * @param response HTTP response used to write the auth cookie
-   * @return authentication response for the authenticated user
+   * @return authentication response containing the user profile
    */
   public AuthResponse authenticate(AuthRequest request, HttpServletResponse response) {
-    log.info("Authenticating user username={}", request.username());
+    log.info("Attempting to authenticate user username={}", request.username());
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(request.username(), request.password())
     );
@@ -89,10 +94,10 @@ public class AuthService {
   }
 
   /**
-   * Resolves whether the incoming request is authenticated based on the cookie token.
+   * Returns the current authentication status based on the provided JWT token.
    *
-   * @param token JWT token extracted from the configured auth cookie
-   * @return authentication status payload for the current request context
+   * @param token the JWT token extracted from the request cookies, or {@code null}
+   * @return authentication status with user profile if authenticated
    */
   public AuthStatusResponse getAuthStatus(String token) {
     log.debug("Checking authentication status tokenPresent={}", token != null && !token.isBlank());
@@ -115,21 +120,21 @@ public class AuthService {
   }
 
   /**
-   * Clears the configured auth cookie.
+   * Logs the user out by clearing the authentication cookie.
    *
-   * @param response HTTP response used to write the clearing cookie
+   * @param response HTTP response used to clear the auth cookie
    */
   public void logout(HttpServletResponse response) {
-    log.info("Clearing authentication cookie");
+    log.info("Logging out user");
     addCookie(response, "", 0);
   }
 
   /**
-   * Writes the auth cookie to the response.
+   * Writes a JWT cookie to the HTTP response.
    *
-   * @param response HTTP response to modify
-   * @param token token value to store in the cookie
-   * @param maxAgeMillis cookie lifetime in milliseconds
+   * @param response     HTTP response to add the cookie to
+   * @param token        the JWT token value
+   * @param maxAgeMillis maximum age of the cookie in milliseconds
    */
   private void addCookie(HttpServletResponse response, String token, long maxAgeMillis) {
     ResponseCookie cookie = ResponseCookie.from(cookieName, token)

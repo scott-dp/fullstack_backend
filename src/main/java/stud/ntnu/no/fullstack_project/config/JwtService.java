@@ -13,6 +13,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+/**
+ * Utility service for creating and validating JSON Web Tokens (JWT).
+ *
+ * <p>Tokens are signed with an HMAC-SHA key derived from the configured secret.
+ * Each token contains the username as its subject and the user's roles as a
+ * custom claim.</p>
+ */
 @Service
 @Slf4j
 public class JwtService {
@@ -24,10 +31,10 @@ public class JwtService {
   private long accessTokenExpiration;
 
   /**
-   * Generates a JWT token for the supplied authenticated user.
+   * Generates a signed JWT for the given user.
    *
-   * @param userDetails authenticated user details
-   * @return signed JWT token string
+   * @param userDetails the authenticated user whose token is being generated
+   * @return a compact, signed JWT string
    */
   public String generateToken(UserDetails userDetails) {
     log.debug("Generating JWT token username={} authorities={}",
@@ -43,10 +50,10 @@ public class JwtService {
   }
 
   /**
-   * Extracts the username claim from the supplied JWT token.
+   * Extracts the username (subject) from a JWT.
    *
-   * @param token signed JWT token
-   * @return username stored in the token subject claim
+   * @param token the JWT string
+   * @return the username stored in the token's subject claim
    */
   public String extractUsername(String token) {
     String username = extractClaims(token).getSubject();
@@ -55,11 +62,11 @@ public class JwtService {
   }
 
   /**
-   * Validates a JWT token against a specific user.
+   * Validates a token against the given user details.
    *
-   * @param token signed JWT token
-   * @param userDetails expected authenticated user
-   * @return {@code true} if the token belongs to the user and is not expired
+   * @param token       the JWT string
+   * @param userDetails the user to validate against
+   * @return {@code true} if the token is valid and belongs to the user
    */
   public boolean isTokenValid(String token, UserDetails userDetails) {
     try {
@@ -72,10 +79,10 @@ public class JwtService {
   }
 
   /**
-   * Validates a JWT token independently of a specific user lookup.
+   * Validates a token without checking the user.
    *
-   * @param token signed JWT token
-   * @return {@code true} if the token is parseable and unexpired
+   * @param token the JWT string
+   * @return {@code true} if the token signature is valid and it has not expired
    */
   public boolean isTokenValid(String token) {
     try {
@@ -87,10 +94,10 @@ public class JwtService {
   }
 
   /**
-   * Parses all claims from the supplied signed JWT token.
+   * Parses and verifies the claims from a JWT.
    *
-   * @param token signed JWT token
-   * @return parsed claims payload
+   * @param token the JWT string
+   * @return the parsed claims
    */
   private Claims extractClaims(String token) {
     return Jwts.parser()
@@ -101,9 +108,9 @@ public class JwtService {
   }
 
   /**
-   * Creates the HMAC signing key used for token signing and validation.
+   * Derives the HMAC-SHA signing key from the configured secret.
    *
-   * @return shared secret signing key
+   * @return the secret key used for signing and verification
    */
   private SecretKey getSigningKey() {
     return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));

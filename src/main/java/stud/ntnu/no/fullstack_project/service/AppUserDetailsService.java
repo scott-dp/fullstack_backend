@@ -8,6 +8,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 
+/**
+ * Spring Security {@link UserDetailsService} implementation backed by the application's
+ * user repository.
+ *
+ * <p>Loaded by the authentication provider to resolve a username into a fully
+ * populated {@link UserDetails} instance during authentication.</p>
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -16,11 +23,11 @@ public class AppUserDetailsService implements UserDetailsService {
   private final AppUserRepository appUserRepository;
 
   /**
-   * Loads a user by username for Spring Security authentication and authorization.
+   * Loads a user by their username for Spring Security authentication.
    *
-   * @param username username of the user to load
-   * @return resolved user details implementation
-   * @throws UsernameNotFoundException if no matching user exists
+   * @param username the username to look up
+   * @return the user details
+   * @throws UsernameNotFoundException if no user exists with the given username
    */
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

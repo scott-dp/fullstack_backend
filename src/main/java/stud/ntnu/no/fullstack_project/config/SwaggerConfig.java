@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * Central OpenAPI configuration for the backend.
  *
  * <p>This configuration exposes API metadata used by Swagger UI and the generated
- * OpenAPI document so the backend has a documented baseline from the start.</p>
+ * OpenAPI document.</p>
  */
 @Configuration
 public class SwaggerConfig {
@@ -25,12 +25,13 @@ public class SwaggerConfig {
   public OpenAPI customOpenApi() {
     return new OpenAPI()
         .info(new Info()
-            .title("Fullstack Project API")
+            .title("IK System API")
             .version("1.0")
-            .description("Starter API for the Frivillig fullstack project with authentication, "
-                + "user, health, and security infrastructure.")
+            .description("Digital Internal Control System API for restaurants and food/alcohol serving "
+                + "establishments. Provides endpoints for compliance management including checklists, "
+                + "temperature logging, deviation tracking, and user management.")
             .contact(new Contact()
-                .name("Frivillig backend")
+                .name("IK System Team")
                 .email("scottld@ntnu.no"))
             .license(new License()
                 .name("Internal project use")));

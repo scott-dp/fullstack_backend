@@ -5,21 +5,43 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 
 /**
- * Response payload describing the currently authenticated user.
+ * Response payload containing the full profile of the currently authenticated user.
  *
- * @param id unique database identifier of the user
- * @param username unique username of the authenticated user
- * @param roles granted Spring Security roles for the user
+ * <p>Includes identity fields, contact information, granted roles, and the
+ * organization the user belongs to.</p>
+ *
+ * @param id               unique user identifier
+ * @param username         login name of the user
+ * @param firstName        first name, may be {@code null}
+ * @param lastName         last name, may be {@code null}
+ * @param email            email address, may be {@code null}
+ * @param roles            set of granted Spring Security roles
+ * @param organizationId   ID of the user's organization, or {@code null}
+ * @param organizationName display name of the user's organization, or {@code null}
  */
-@Schema(description = "Representation of the currently authenticated user.")
+@Schema(description = "Full profile of the currently authenticated user.")
 public record CurrentUserResponse(
-    @Schema(description = "Database identifier of the user.", example = "1")
+    @Schema(description = "Unique user identifier.", example = "1")
     Long id,
 
-    @Schema(description = "Username of the authenticated user.", example = "scott")
+    @Schema(description = "Login name of the user.", example = "scott")
     String username,
 
-    @ArraySchema(schema = @Schema(description = "Granted Spring Security role.", example = "ROLE_USER"))
-    Set<String> roles
-) {
-}
+    @Schema(description = "First name of the user.", example = "Scott")
+    String firstName,
+
+    @Schema(description = "Last name of the user.", example = "Liddell")
+    String lastName,
+
+    @Schema(description = "Email address of the user.", example = "scott@example.com")
+    String email,
+
+    @ArraySchema(schema = @Schema(description = "Granted Spring Security role.", example = "ROLE_STAFF"))
+    Set<String> roles,
+
+    @Schema(description = "ID of the organization the user belongs to.", example = "1")
+    Long organizationId,
+
+    @Schema(description = "Display name of the user's organization.", example = "Everest Sushi & Fusion")
+    String organizationName
+) {}

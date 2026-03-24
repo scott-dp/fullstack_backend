@@ -21,6 +21,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Central Spring Security configuration for the application.
+ *
+ * <p>Configures a stateless, JWT-based authentication flow with cookie transport,
+ * CORS rules, CSRF disabled, and method-level security enabled.</p>
+ */
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
@@ -32,6 +38,14 @@ public class SecurityConfig {
   @Value("${app.frontend-url}")
   private String frontendUrl;
 
+  /**
+   * Builds the main security filter chain with CORS, CSRF, session management,
+   * authorization rules, and the JWT authentication filter.
+   *
+   * @param http the {@link HttpSecurity} builder
+   * @return the configured {@link SecurityFilterChain}
+   * @throws Exception if an error occurs during configuration
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
@@ -55,6 +69,11 @@ public class SecurityConfig {
         .build();
   }
 
+  /**
+   * Configures CORS to allow the frontend origin with credentials.
+   *
+   * @return the CORS configuration source
+   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
@@ -69,6 +88,11 @@ public class SecurityConfig {
     return source;
   }
 
+  /**
+   * Creates a DAO-based authentication provider using the application's user details service.
+   *
+   * @return the configured authentication provider
+   */
   @Bean
   public AuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
@@ -76,11 +100,22 @@ public class SecurityConfig {
     return provider;
   }
 
+  /**
+   * Exposes an {@link AuthenticationManager} bean backed by the configured provider.
+   *
+   * @param authenticationProvider the authentication provider
+   * @return the authentication manager
+   */
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationProvider authenticationProvider) {
     return authentication -> authenticationProvider.authenticate(authentication);
   }
 
+  /**
+   * Creates a BCrypt password encoder for hashing user passwords.
+   *
+   * @return the password encoder
+   */
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();

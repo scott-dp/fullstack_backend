@@ -51,98 +51,63 @@ public class AuthController {
           + "the user immediately by returning the auth cookie."
   )
   @ApiResponses(value = {
-      @ApiResponse(
-          responseCode = "200",
-          description = "User registered successfully",
-          content = @Content(schema = @Schema(implementation = AuthResponse.class))
-      ),
-      @ApiResponse(
-          responseCode = "400",
-          description = "Validation failed or username is already taken",
-          content = @Content(schema = @Schema(implementation = ApiError.class))
-      )
+      @ApiResponse(responseCode = "200", description = "User registered successfully",
+          content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Validation failed or username is already taken",
+          content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
   public ResponseEntity<AuthResponse> register(
       @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Credentials for the new user account.",
           required = true,
-          content = @Content(
-              schema = @Schema(implementation = AuthRequest.class),
-              examples = @ExampleObject(
-                  name = "Register request",
-                  value = """
-                      {
-                        "username": "scott",
-                        "password": "superSecret123"
-                      }
-                      """
-              )
-          )
-      )
+          content = @Content(schema = @Schema(implementation = AuthRequest.class),
+              examples = @ExampleObject(name = "Register request", value = """
+                  {"username": "scott", "password": "superSecret123"}
+                  """)))
       @Valid @RequestBody AuthRequest request,
       HttpServletResponse response
   ) {
-    log.info("Received registration request for username={}", request.username());
+    log.info("Attempting to register user username={}", request.username());
     return ResponseEntity.ok(authService.register(request, response));
   }
 
   @PostMapping("/login")
   @Operation(
       summary = "Authenticate a user",
-      description = "Authenticates submitted credentials, generates a JWT, and writes it to the "
-          + "configured HTTP-only cookie."
+      description = "Validates the supplied credentials and, on success, sets an HTTP-only JWT "
+          + "cookie on the response."
   )
   @ApiResponses(value = {
-      @ApiResponse(
-          responseCode = "200",
-          description = "Authentication successful",
-          content = @Content(schema = @Schema(implementation = AuthResponse.class))
-      ),
-      @ApiResponse(
-          responseCode = "401",
-          description = "Invalid username or password",
-          content = @Content(schema = @Schema(implementation = ApiError.class))
-      ),
-      @ApiResponse(
-          responseCode = "400",
-          description = "Malformed request body",
-          content = @Content(schema = @Schema(implementation = ApiError.class))
-      )
+      @ApiResponse(responseCode = "200", description = "User authenticated successfully",
+          content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+      @ApiResponse(responseCode = "401", description = "Invalid username or password",
+          content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
   public ResponseEntity<AuthResponse> login(
       @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Credentials used to log in.",
+          description = "Credentials for authentication.",
           required = true,
-          content = @Content(
-              schema = @Schema(implementation = AuthRequest.class),
-              examples = @ExampleObject(
-                  name = "Login request",
-                  value = """
-                      {
-                        "username": "scott",
-                        "password": "superSecret123"
-                      }
-                      """
-              )
-          )
-      )
+          content = @Content(schema = @Schema(implementation = AuthRequest.class),
+              examples = @ExampleObject(name = "Login request", value = """
+                  {"username": "scott", "password": "superSecret123"}
+                  """)))
       @Valid @RequestBody AuthRequest request,
       HttpServletResponse response
   ) {
-    log.info("Received login request for username={}", request.username());
+    log.info("Attempting to authenticate user username={}", request.username());
     return ResponseEntity.ok(authService.authenticate(request, response));
   }
 
   @PostMapping("/logout")
   @Operation(
       summary = "Clear the auth cookie",
-      description = "Clears the configured authentication cookie and effectively logs out the current client."
+      description = "Clears the JWT authentication cookie, effectively logging the user out."
   )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Logout completed successfully"),
+      @ApiResponse(responseCode = "200", description = "Logout successful")
   })
   public ResponseEntity<Void> logout(HttpServletResponse response) {
-    log.info("Received logout request");
+    log.info("User logout requested");
     authService.logout(response);
     return ResponseEntity.ok().build();
   }
@@ -150,21 +115,24 @@ public class AuthController {
   @GetMapping("/status")
   @Operation(
       summary = "Get current authentication status",
-      description = "Checks the current auth cookie and returns whether the request is authenticated "
-          + "together with the resolved user when available."
+      description = "Returns whether the caller is currently authenticated and, if so, the "
+          + "current user's profile."
   )
   @ApiResponses(value = {
-      @ApiResponse(
-          responseCode = "200",
-          description = "Authentication status resolved successfully",
-          content = @Content(schema = @Schema(implementation = AuthStatusResponse.class))
-      )
+      @ApiResponse(responseCode = "200", description = "Authentication status returned",
+          content = @Content(schema = @Schema(implementation = AuthStatusResponse.class)))
   })
   public ResponseEntity<AuthStatusResponse> status(HttpServletRequest request) {
-    log.debug("Received auth status request");
+    log.info("Auth status check requested");
     return ResponseEntity.ok(authService.getAuthStatus(extractToken(request)));
   }
 
+  /**
+   * Extracts the JWT token from the request cookies.
+   *
+   * @param request the incoming HTTP request
+   * @return the token value, or {@code null} if not present
+   */
   private String extractToken(HttpServletRequest request) {
     Cookie[] cookies = request.getCookies();
 
