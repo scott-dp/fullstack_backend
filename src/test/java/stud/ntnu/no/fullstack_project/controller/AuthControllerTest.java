@@ -10,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
@@ -19,12 +22,15 @@ import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.RegisterRequest;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+
 /**
  * Integration tests for AuthController.
  * Uses full Spring context with H2 in-memory database.
  * Each test method that mutates data uses @DirtiesContext to avoid cross-contamination.
  */
-@SpringBootTest
+@SpringBootTest(properties = "app.mail.enabled=true")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -36,6 +42,9 @@ class AuthControllerTest {
   @Autowired
   private AppUserRepository appUserRepository;
 
+  @MockitoBean
+  private JavaMailSender javaMailSender;
+
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
@@ -46,8 +55,7 @@ class AuthControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value("Registration successful. Verify your email before logging in."))
-        .andExpect(jsonPath("$.verificationLink").exists());
+        .andExpect(jsonPath("$.message").value("Registration successful. Check your email to verify your account before logging in."));
   }
 
   @Test
@@ -167,14 +175,14 @@ class AuthControllerTest {
   void verifyEmailActivatesRegisteredUser() throws Exception {
     RegisterRequest registerRequest = new RegisterRequest("verifyme", "verifyme@example.com", "password123");
 
-    String verificationLink = mockMvc.perform(post("/api/auth/register")
+    mockMvc.perform(post("/api/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(registerRequest)))
-        .andExpect(status().isOk())
-        .andReturn().getResponse().getContentAsString();
+        .andExpect(status().isOk());
 
-    String token = objectMapper.readTree(verificationLink).get("verificationLink").asText()
-        .replace("http://localhost:5173/verify-email?token=", "");
+    String token = appUserRepository.findByEmail("verifyme@example.com")
+        .orElseThrow()
+        .getEmailVerificationToken();
 
     mockMvc.perform(get("/api/auth/verify").param("token", token))
         .andExpect(status().isOk())
@@ -215,6 +223,28 @@ class AuthControllerTest {
             .content(objectMapper.writeValueAsString(new EmailCodeLoginRequest("admin@everest.no", code))))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.user.username").value("admin"));
+  }
+
+  @Test
+  void registerRollsBackWhenVerificationEmailSendingFails() throws Exception {
+    doThrow(new MailAuthenticationException("Authentication failed"))
+        .when(javaMailSender)
+        .send(any(org.springframework.mail.SimpleMailMessage.class));
+
+    RegisterRequest request = new RegisterRequest("mailfail", "mailfail@example.com", "password123");
+
+    mockMvc.perform(post("/api/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Failed to send verification email"));
+
+    if (appUserRepository.existsByUsername("mailfail")) {
+      throw new AssertionError("Expected registration rollback when email delivery fails");
+    }
+    if (appUserRepository.existsByEmail("mailfail@example.com")) {
+      throw new AssertionError("Expected registration rollback when email delivery fails");
+    }
   }
 
   private void assertNotNull(Object obj) {

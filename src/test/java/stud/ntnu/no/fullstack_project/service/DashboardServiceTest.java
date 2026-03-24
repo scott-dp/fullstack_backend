@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.dashboard.DashboardResponse;
 import stud.ntnu.no.fullstack_project.entity.*;
+import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.ChecklistCompletionRepository;
 import stud.ntnu.no.fullstack_project.repository.ChecklistTemplateRepository;
 import stud.ntnu.no.fullstack_project.repository.DeviationRepository;
@@ -22,6 +23,9 @@ import stud.ntnu.no.fullstack_project.repository.TemperatureLogRepository;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
+
+  @Mock
+  private AppUserRepository appUserRepository;
 
   @Mock
   private ChecklistTemplateRepository checklistTemplateRepository;
@@ -62,6 +66,8 @@ class DashboardServiceTest {
 
   @Test
   void getDashboard_returnsAggregatedStats() {
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
+
     // Set up mock returns
     ChecklistTemplate t1 = new ChecklistTemplate();
     t1.setId(1L);
@@ -104,6 +110,8 @@ class DashboardServiceTest {
 
   @Test
   void getDashboard_handlesZeroCountsCorrectly() {
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
+
     when(checklistTemplateRepository.findByOrganizationIdAndActiveTrue(1L))
         .thenReturn(List.of());
     when(checklistCompletionRepository.countByTemplateOrganizationIdAndCompletedAtAfter(
@@ -136,6 +144,8 @@ class DashboardServiceTest {
 
   @Test
   void getDashboard_correctlyCallsAllRepositories() {
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
+
     when(checklistTemplateRepository.findByOrganizationIdAndActiveTrue(1L))
         .thenReturn(List.of());
     when(checklistCompletionRepository.countByTemplateOrganizationIdAndCompletedAtAfter(
@@ -198,6 +208,7 @@ class DashboardServiceTest {
         .thenReturn(0L);
     when(notificationRepository.countByUserIdAndReadFalse(5L))
         .thenReturn(0L);
+    when(appUserRepository.findById(5L)).thenReturn(java.util.Optional.of(otherUser));
 
     dashboardService.getDashboard(otherUser);
 
@@ -209,6 +220,7 @@ class DashboardServiceTest {
   @Test
   void getDashboard_returnsEmptyStateWhenUserHasNoOrganization() {
     testUser.setOrganization(null);
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
     when(notificationRepository.countByUserIdAndReadFalse(1L)).thenReturn(3L);
 
     DashboardResponse response = dashboardService.getDashboard(testUser);

@@ -5,10 +5,12 @@ import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.no.fullstack_project.dto.dashboard.DashboardResponse;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.DeviationStatus;
 import stud.ntnu.no.fullstack_project.entity.TemperatureStatus;
+import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.ChecklistCompletionRepository;
 import stud.ntnu.no.fullstack_project.repository.ChecklistTemplateRepository;
 import stud.ntnu.no.fullstack_project.repository.DeviationRepository;
@@ -26,6 +28,7 @@ import stud.ntnu.no.fullstack_project.repository.TemperatureLogRepository;
 @RequiredArgsConstructor
 public class DashboardService {
 
+  private final AppUserRepository appUserRepository;
   private final ChecklistTemplateRepository checklistTemplateRepository;
   private final ChecklistCompletionRepository checklistCompletionRepository;
   private final TemperatureLogRepository temperatureLogRepository;
@@ -38,12 +41,16 @@ public class DashboardService {
    * @param currentUser the authenticated user whose organization metrics are computed
    * @return dashboard response containing all aggregated statistics
    */
+  @Transactional(readOnly = true)
   public DashboardResponse getDashboard(AppUser currentUser) {
-    long unreadNotifications = notificationRepository
-        .countByUserIdAndReadFalse(currentUser.getId());
+    AppUser managedUser = appUserRepository.findById(currentUser.getId())
+        .orElseThrow(() -> new IllegalArgumentException("Authenticated user was not found"));
 
-    if (currentUser.getOrganization() == null) {
-      log.info("Returning empty dashboard for user={} because no organization is assigned", currentUser.getUsername());
+    long unreadNotifications = notificationRepository
+        .countByUserIdAndReadFalse(managedUser.getId());
+
+    if (managedUser.getOrganization() == null) {
+      log.info("Returning empty dashboard for user={} because no organization is assigned", managedUser.getUsername());
       return new DashboardResponse(
           false,
           null,
@@ -57,10 +64,11 @@ public class DashboardService {
       );
     }
 
-    Long orgId = currentUser.getOrganization().getId();
+    Long orgId = managedUser.getOrganization().getId();
+    String organizationName = managedUser.getOrganization().getName();
     LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
 
-    log.info("Computing dashboard for orgId={}, user={}", orgId, currentUser.getUsername());
+    log.info("Computing dashboard for orgId={}, user={}", orgId, managedUser.getUsername());
 
     long totalChecklistTemplates = checklistTemplateRepository
         .findByOrganizationIdAndActiveTrue(orgId).size();
@@ -82,7 +90,7 @@ public class DashboardService {
 
     return new DashboardResponse(
         true,
-        currentUser.getOrganization().getName(),
+        organizationName,
         null,
         totalChecklistTemplates,
         checklistsCompletedToday,

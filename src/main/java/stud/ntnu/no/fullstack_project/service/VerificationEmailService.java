@@ -24,6 +24,12 @@ public class VerificationEmailService {
   @Value("${app.mail.from}")
   private String fromAddress;
 
+  @Value("${spring.mail.username:}")
+  private String smtpUsername;
+
+  @Value("${spring.mail.password:}")
+  private String smtpPassword;
+
   /**
    * Sends the verification email for a new account.
    *
@@ -31,6 +37,8 @@ public class VerificationEmailService {
    * @param verificationLink verification URL to include in the email
    */
   public void sendVerificationEmail(String recipientEmail, String verificationLink) {
+    logMailConfiguration("verification");
+
     if (!mailEnabled) {
       log.info(
           "Verification email sending is disabled. recipient={} verificationLink={}",
@@ -69,6 +77,8 @@ public class VerificationEmailService {
    * @param code six-digit login code
    */
   public void sendLoginCodeEmail(String recipientEmail, String code) {
+    logMailConfiguration("login-code");
+
     if (!mailEnabled) {
       log.info("Login code email sending is disabled. recipient={} code={}", recipientEmail, code);
       return;
@@ -93,5 +103,20 @@ public class VerificationEmailService {
       log.error("Failed to send login code email to {}", recipientEmail, exception);
       throw new IllegalStateException("Failed to send login code email");
     }
+  }
+
+  private void logMailConfiguration(String flow) {
+    boolean passwordPresent = smtpPassword != null && !smtpPassword.isBlank();
+    int passwordLength = passwordPresent ? smtpPassword.length() : 0;
+
+    log.info(
+        "Mail configuration for {} flow: enabled={} from={} smtpUsername={} passwordPresent={} passwordLength={}",
+        flow,
+        mailEnabled,
+        fromAddress,
+        smtpUsername,
+        passwordPresent,
+        passwordLength
+    );
   }
 }

@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.no.fullstack_project.config.JwtService;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthResponse;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthStatusResponse;
@@ -72,6 +73,7 @@ public class AuthService {
    * @param response HTTP response used to write the auth cookie
    * @return authentication response for the newly registered user
    */
+  @Transactional
   public RegistrationResponse register(RegisterRequest request) {
     String normalizedEmail = normalizeEmail(request.email());
     log.info("Attempting to register user username={} email={}", request.username(), normalizedEmail);
@@ -99,8 +101,7 @@ public class AuthService {
         user.getUsername(), user.getEmail(), verificationLink);
 
     return new RegistrationResponse(
-        "Registration successful. Verify your email before logging in.",
-        verificationLink
+        "Registration successful. Check your email to verify your account before logging in."
     );
   }
 
@@ -140,6 +141,7 @@ public class AuthService {
    * @param request verified email request
    * @return status message
    */
+  @Transactional
   public MessageResponse requestEmailLoginCode(EmailCodeRequest request) {
     AppUser user = appUserRepository.findByEmail(normalizeEmail(request.email()))
         .orElseThrow(() -> new IllegalArgumentException("No user found for that email"));
@@ -164,6 +166,7 @@ public class AuthService {
    * @param response HTTP response used to write the auth cookie
    * @return authentication response containing the user profile
    */
+  @Transactional
   public AuthResponse authenticateWithEmailCode(
       EmailCodeLoginRequest request,
       HttpServletResponse response
@@ -200,6 +203,7 @@ public class AuthService {
    * @param token the verification token from the email link
    * @return verification status response
    */
+  @Transactional
   public VerificationResponse verifyEmail(String token) {
     if (token == null || token.isBlank()) {
       throw new IllegalArgumentException("Verification token is required");

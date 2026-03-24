@@ -1,6 +1,7 @@
 package stud.ntnu.no.fullstack_project.service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -214,8 +215,8 @@ public class OrganizationInviteService {
 
   private Set<Role> resolveAcceptedRoles(Role invitedRole) {
     return switch (invitedRole) {
-      case ROLE_MANAGER -> Set.of(Role.ROLE_MANAGER, Role.ROLE_STAFF);
-      case ROLE_STAFF -> Set.of(Role.ROLE_STAFF);
+      case ROLE_MANAGER -> new HashSet<>(Set.of(Role.ROLE_MANAGER, Role.ROLE_STAFF));
+      case ROLE_STAFF -> new HashSet<>(Set.of(Role.ROLE_STAFF));
       case ROLE_ADMIN -> throw new IllegalArgumentException("Admin invitations are not supported");
     };
   }
