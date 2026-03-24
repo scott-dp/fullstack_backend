@@ -300,6 +300,7 @@ class DeviationServiceTest {
     assertNotNull(response);
     assertEquals("Need to investigate further", response.content());
     assertEquals("reporter", response.authorUsername());
+    assertNotNull(response.createdAt());
     assertEquals(1, deviation.getComments().size());
     verify(deviationRepository).save(deviation);
   }
