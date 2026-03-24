@@ -29,6 +29,7 @@ import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
   private final AppUserRepository appUserRepository;
@@ -56,6 +57,7 @@ public class AuthService {
   public AuthResponse register(AuthRequest request, HttpServletResponse response) {
     log.info("Attempting to register user username={}", request.username());
     if (appUserRepository.existsByUsername(request.username())) {
+      log.warn("Registration rejected because username is already taken username={}", request.username());
       throw new IllegalArgumentException("Username is already taken");
     }
 
@@ -64,6 +66,7 @@ public class AuthService {
     user.setPassword(passwordEncoder.encode(request.password()));
     user.getRoles().add(Role.ROLE_STAFF);
     appUserRepository.save(user);
+    log.info("User registered successfully username={} roles={}", user.getUsername(), user.getRoles());
 
     return authenticate(request, response);
   }
@@ -85,6 +88,7 @@ public class AuthService {
         .orElseThrow(() -> new IllegalArgumentException("User not found"));
     String token = jwtService.generateToken(user);
     addCookie(response, token, accessTokenExpiration);
+    log.info("Authentication successful username={} roles={}", user.getUsername(), user.getRoles());
 
     CurrentUserResponse currentUser = userService.mapToResponse(user);
     return new AuthResponse("Authentication successful", currentUser);
@@ -97,17 +101,22 @@ public class AuthService {
    * @return authentication status with user profile if authenticated
    */
   public AuthStatusResponse getAuthStatus(String token) {
+    log.debug("Checking authentication status tokenPresent={}", token != null && !token.isBlank());
     if (token == null || token.isBlank() || !jwtService.isTokenValid(token)) {
+      log.debug("Authentication status resolved to anonymous");
       return new AuthStatusResponse(false, null);
     }
 
-    AppUser user = appUserRepository.findByUsername(jwtService.extractUsername(token))
+    String username = jwtService.extractUsername(token);
+    AppUser user = appUserRepository.findByUsername(username)
         .orElse(null);
 
     if (user == null) {
+      log.warn("Authentication token was valid but user was not found username={}", username);
       return new AuthStatusResponse(false, null);
     }
 
+    log.debug("Authentication status resolved to authenticated username={}", user.getUsername());
     return new AuthStatusResponse(true, userService.mapToResponse(user));
   }
 
@@ -138,5 +147,6 @@ public class AuthService {
         .build();
 
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    log.debug("Auth cookie updated cookieName={} secure={} maxAgeMillis={}", cookieName, cookieSecure, maxAgeMillis);
   }
 }

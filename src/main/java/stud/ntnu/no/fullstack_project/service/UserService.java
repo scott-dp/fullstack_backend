@@ -28,6 +28,7 @@ import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
   private final AppUserRepository appUserRepository;
@@ -41,8 +42,12 @@ public class UserService {
    * @return the current user's profile response
    */
   public CurrentUserResponse getCurrentUser() {
-    AppUser user = appUserRepository.findByUsername(securityUtil.getCurrentUsername())
+    String username = securityUtil.getCurrentUsername();
+    log.info("Loading current user username={}", username);
+
+    AppUser user = appUserRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Authenticated user was not found"));
+    log.debug("Loaded current user id={} username={} roles={}", user.getId(), user.getUsername(), user.getRoles());
     return mapToResponse(user);
   }
 

@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
  * custom claim.</p>
  */
 @Service
+@Slf4j
 public class JwtService {
 
   @Value("${security.jwt.secret-key}")
@@ -35,6 +37,9 @@ public class JwtService {
    * @return a compact, signed JWT string
    */
   public String generateToken(UserDetails userDetails) {
+    log.debug("Generating JWT token username={} authorities={}",
+        userDetails.getUsername(),
+        userDetails.getAuthorities());
     return Jwts.builder()
         .claims(Map.of("roles", userDetails.getAuthorities().stream().map(Object::toString).toList()))
         .subject(userDetails.getUsername())
@@ -51,7 +56,9 @@ public class JwtService {
    * @return the username stored in the token's subject claim
    */
   public String extractUsername(String token) {
-    return extractClaims(token).getSubject();
+    String username = extractClaims(token).getSubject();
+    log.trace("Extracted username from JWT username={}", username);
+    return username;
   }
 
   /**
@@ -66,6 +73,7 @@ public class JwtService {
       Claims claims = extractClaims(token);
       return claims.getSubject().equals(userDetails.getUsername()) && claims.getExpiration().after(new Date());
     } catch (JwtException | IllegalArgumentException exception) {
+      log.debug("JWT validation failed for authenticated user lookup error={}", exception.getMessage());
       return false;
     }
   }
@@ -80,6 +88,7 @@ public class JwtService {
     try {
       return extractClaims(token).getExpiration().after(new Date());
     } catch (JwtException | IllegalArgumentException exception) {
+      log.debug("JWT validation failed error={}", exception.getMessage());
       return false;
     }
   }

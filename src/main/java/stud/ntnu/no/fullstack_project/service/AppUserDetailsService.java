@@ -18,6 +18,7 @@ import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AppUserDetailsService implements UserDetailsService {
 
   private final AppUserRepository appUserRepository;
@@ -33,6 +34,9 @@ public class AppUserDetailsService implements UserDetailsService {
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     log.debug("Loading user details for username={}", username);
     return appUserRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        .orElseThrow(() -> {
+          log.warn("User details lookup failed username={}", username);
+          return new UsernameNotFoundException("User not found: " + username);
+        });
   }
 }

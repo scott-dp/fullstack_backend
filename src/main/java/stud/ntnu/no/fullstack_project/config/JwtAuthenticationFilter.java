@@ -57,6 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         || requestUri.startsWith("/swagger-ui")
         || requestUri.startsWith("/v3/api-docs")
         || requestUri.startsWith("/h2-console")) {
+      log.trace("Skipping JWT filter for requestUri={}", requestUri);
       filterChain.doFilter(request, response);
       return;
     }
@@ -64,6 +65,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     String token = extractToken(request.getCookies());
 
     if (token == null || SecurityContextHolder.getContext().getAuthentication() != null) {
+      log.trace("JWT filter continuing without authentication tokenPresent={} authenticationAlreadySet={}",
+          token != null,
+          SecurityContextHolder.getContext().getAuthentication() != null);
       filterChain.doFilter(request, response);
       return;
     }
@@ -85,6 +89,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
       authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
       SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+      log.debug("JWT authentication established username={} authorities={}",
+          username,
+          userDetails.getAuthorities());
+    } else {
+      log.warn("JWT token validation failed username={} requestUri={}", username, requestUri);
     }
 
     filterChain.doFilter(request, response);
