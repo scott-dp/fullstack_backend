@@ -12,6 +12,12 @@ import stud.ntnu.no.fullstack_project.entity.Organization;
 import stud.ntnu.no.fullstack_project.entity.OrganizationType;
 import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
 
+/**
+ * Service for managing organizations.
+ *
+ * <p>Provides business logic for creating, retrieving, listing, and updating
+ * organization records.</p>
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -19,6 +25,12 @@ public class OrganizationService {
 
   private final OrganizationRepository organizationRepository;
 
+  /**
+   * Creates a new organization after validating uniqueness of the organization number.
+   *
+   * @param request the organization details
+   * @return the created organization response
+   */
   @Transactional
   public OrganizationResponse createOrganization(CreateOrganizationRequest request) {
     if (request.organizationNumber() != null && !request.organizationNumber().isBlank()
@@ -45,18 +57,36 @@ public class OrganizationService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Retrieves an organization by its ID.
+   *
+   * @param id the organization identifier
+   * @return the organization response
+   */
   public OrganizationResponse getOrganization(Long id) {
     Organization organization = organizationRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Organization not found with id: " + id));
     return mapToResponse(organization);
   }
 
+  /**
+   * Lists all registered organizations.
+   *
+   * @return list of organization responses
+   */
   public List<OrganizationResponse> listOrganizations() {
     return organizationRepository.findAll().stream()
         .map(this::mapToResponse)
         .collect(Collectors.toList());
   }
 
+  /**
+   * Updates an existing organization's details.
+   *
+   * @param id      the organization identifier
+   * @param request the updated organization details
+   * @return the updated organization response
+   */
   @Transactional
   public OrganizationResponse updateOrganization(Long id, CreateOrganizationRequest request) {
     Organization organization = organizationRepository.findById(id)
@@ -86,6 +116,12 @@ public class OrganizationService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Maps an organization entity to its response DTO.
+   *
+   * @param org the organization entity
+   * @return the organization response DTO
+   */
   private OrganizationResponse mapToResponse(Organization org) {
     return new OrganizationResponse(
         org.getId(),

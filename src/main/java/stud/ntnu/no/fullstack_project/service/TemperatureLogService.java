@@ -14,6 +14,12 @@ import stud.ntnu.no.fullstack_project.entity.TemperatureLog;
 import stud.ntnu.no.fullstack_project.entity.TemperatureStatus;
 import stud.ntnu.no.fullstack_project.repository.TemperatureLogRepository;
 
+/**
+ * Service for managing temperature logs.
+ *
+ * <p>Handles recording temperature measurements with automatic threshold-based
+ * status calculation, and provides retrieval and filtering capabilities.</p>
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,13 @@ public class TemperatureLogService {
   private final TemperatureLogRepository temperatureLogRepository;
   private final NotificationService notificationService;
 
+  /**
+   * Records a new temperature measurement and triggers a notification if critical.
+   *
+   * @param request     the temperature measurement details
+   * @param currentUser the authenticated user recording the measurement
+   * @return the created temperature log response
+   */
   @Transactional
   public TemperatureLogResponse createLog(CreateTemperatureLogRequest request,
       AppUser currentUser) {
@@ -58,6 +71,12 @@ public class TemperatureLogService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Retrieves a temperature log by its ID.
+   *
+   * @param id the temperature log identifier
+   * @return the temperature log response
+   */
   public TemperatureLogResponse getLog(Long id) {
     TemperatureLog tempLog = temperatureLogRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -65,6 +84,13 @@ public class TemperatureLogService {
     return mapToResponse(tempLog);
   }
 
+  /**
+   * Lists temperature logs for an organization, optionally filtered by location.
+   *
+   * @param organizationId the organization identifier
+   * @param location       optional location filter
+   * @return list of matching temperature log responses ordered by most recent first
+   */
   public List<TemperatureLogResponse> listLogs(Long organizationId, String location) {
     List<TemperatureLog> logs;
 
@@ -80,6 +106,17 @@ public class TemperatureLogService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Calculates the temperature status based on the value and thresholds.
+   *
+   * <p>Returns CRITICAL if the temperature is outside the thresholds, WARNING if
+   * within 2 degrees of a threshold boundary, and NORMAL otherwise.</p>
+   *
+   * @param temp the measured temperature
+   * @param min  the minimum acceptable threshold
+   * @param max  the maximum acceptable threshold
+   * @return the computed temperature status
+   */
   TemperatureStatus calculateStatus(double temp, double min, double max) {
     if (temp < min || temp > max) {
       return TemperatureStatus.CRITICAL;
@@ -90,6 +127,12 @@ public class TemperatureLogService {
     return TemperatureStatus.NORMAL;
   }
 
+  /**
+   * Maps a temperature log entity to its response DTO.
+   *
+   * @param tempLog the temperature log entity
+   * @return the temperature log response DTO
+   */
   private TemperatureLogResponse mapToResponse(TemperatureLog tempLog) {
     return new TemperatureLogResponse(
         tempLog.getId(),

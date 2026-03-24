@@ -25,6 +25,12 @@ import stud.ntnu.no.fullstack_project.entity.Frequency;
 import stud.ntnu.no.fullstack_project.repository.ChecklistCompletionRepository;
 import stud.ntnu.no.fullstack_project.repository.ChecklistTemplateRepository;
 
+/**
+ * Service for managing checklist templates and their completions.
+ *
+ * <p>Provides business logic for creating, reading, updating, and soft-deleting
+ * checklist templates, as well as recording and retrieving checklist completions.</p>
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,6 +39,13 @@ public class ChecklistService {
   private final ChecklistTemplateRepository templateRepository;
   private final ChecklistCompletionRepository completionRepository;
 
+  /**
+   * Creates a new checklist template with its items.
+   *
+   * @param request     the template details including items
+   * @param currentUser the authenticated user creating the template
+   * @return the created template response
+   */
   @Transactional
   public ChecklistTemplateResponse createTemplate(CreateChecklistTemplateRequest request,
       AppUser currentUser) {
@@ -73,6 +86,12 @@ public class ChecklistService {
     return mapToTemplateResponse(saved);
   }
 
+  /**
+   * Retrieves a checklist template by its ID.
+   *
+   * @param id the template identifier
+   * @return the template response
+   */
   public ChecklistTemplateResponse getTemplate(Long id) {
     ChecklistTemplate template = templateRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -80,6 +99,13 @@ public class ChecklistService {
     return mapToTemplateResponse(template);
   }
 
+  /**
+   * Lists active checklist templates for an organization, optionally filtered by category.
+   *
+   * @param organizationId the organization identifier
+   * @param category       optional compliance category filter
+   * @return list of matching template responses
+   */
   public List<ChecklistTemplateResponse> listTemplates(Long organizationId, String category) {
     List<ChecklistTemplate> templates;
 
@@ -101,6 +127,13 @@ public class ChecklistService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Updates an existing checklist template with new details and items.
+   *
+   * @param id      the template identifier
+   * @param request the updated template details
+   * @return the updated template response
+   */
   @Transactional
   public ChecklistTemplateResponse updateTemplate(Long id,
       CreateChecklistTemplateRequest request) {
@@ -142,6 +175,11 @@ public class ChecklistService {
     return mapToTemplateResponse(saved);
   }
 
+  /**
+   * Soft-deletes a checklist template by marking it as inactive.
+   *
+   * @param id the template identifier
+   */
   @Transactional
   public void deleteTemplate(Long id) {
     ChecklistTemplate template = templateRepository.findById(id)
@@ -152,6 +190,13 @@ public class ChecklistService {
     log.info("Checklist template soft-deleted: id={}", id);
   }
 
+  /**
+   * Completes a checklist by recording answers for each item.
+   *
+   * @param request     the completion request with answers
+   * @param currentUser the authenticated user completing the checklist
+   * @return the completion response
+   */
   @Transactional
   public ChecklistCompletionResponse completeChecklist(CompleteChecklistRequest request,
       AppUser currentUser) {
@@ -194,6 +239,12 @@ public class ChecklistService {
     return mapToCompletionResponse(saved);
   }
 
+  /**
+   * Retrieves a checklist completion by its ID.
+   *
+   * @param id the completion identifier
+   * @return the completion response
+   */
   public ChecklistCompletionResponse getCompletion(Long id) {
     ChecklistCompletion completion = completionRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -201,6 +252,12 @@ public class ChecklistService {
     return mapToCompletionResponse(completion);
   }
 
+  /**
+   * Lists all checklist completions for an organization.
+   *
+   * @param organizationId the organization identifier
+   * @return list of completion responses ordered by most recent first
+   */
   public List<ChecklistCompletionResponse> listCompletions(Long organizationId) {
     return completionRepository
         .findByTemplateOrganizationIdOrderByCompletedAtDesc(organizationId).stream()
@@ -208,6 +265,12 @@ public class ChecklistService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Maps a checklist template entity to its response DTO.
+   *
+   * @param template the template entity
+   * @return the template response DTO
+   */
   private ChecklistTemplateResponse mapToTemplateResponse(ChecklistTemplate template) {
     List<ChecklistItemResponse> items = template.getItems().stream()
         .map(item -> new ChecklistItemResponse(
@@ -231,6 +294,12 @@ public class ChecklistService {
     );
   }
 
+  /**
+   * Maps a checklist completion entity to its response DTO.
+   *
+   * @param completion the completion entity
+   * @return the completion response DTO
+   */
   private ChecklistCompletionResponse mapToCompletionResponse(ChecklistCompletion completion) {
     List<ChecklistAnswerResponse> answers = completion.getAnswers().stream()
         .map(answer -> new ChecklistAnswerResponse(

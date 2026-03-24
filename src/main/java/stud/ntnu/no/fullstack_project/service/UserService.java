@@ -19,6 +19,12 @@ import stud.ntnu.no.fullstack_project.entity.Role;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
 
+/**
+ * Service for user management operations.
+ *
+ * <p>Provides business logic for retrieving user profiles, updating profiles,
+ * listing organization members, and admin-level user creation.</p>
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,12 +35,26 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
   private final SecurityUtil securityUtil;
 
+  /**
+   * Retrieves the profile of the currently authenticated user.
+   *
+   * @return the current user's profile response
+   */
   public CurrentUserResponse getCurrentUser() {
     AppUser user = appUserRepository.findByUsername(securityUtil.getCurrentUsername())
         .orElseThrow(() -> new IllegalArgumentException("Authenticated user was not found"));
     return mapToResponse(user);
   }
 
+  /**
+   * Updates the profile of the currently authenticated user.
+   *
+   * <p>Only non-null fields in the request are applied.</p>
+   *
+   * @param request     the profile fields to update
+   * @param currentUser the authenticated user entity
+   * @return the updated user profile response
+   */
   @Transactional
   public CurrentUserResponse updateProfile(UpdateUserRequest request, AppUser currentUser) {
     if (request.email() != null && !request.email().equals(currentUser.getEmail())
@@ -57,12 +77,27 @@ public class UserService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Lists all users belonging to the specified organization.
+   *
+   * @param organizationId the organization identifier
+   * @return list of user summary responses
+   */
   public List<UserSummaryResponse> listUsersInOrganization(Long organizationId) {
     return appUserRepository.findByOrganizationId(organizationId).stream()
         .map(this::mapToSummary)
         .collect(Collectors.toList());
   }
 
+  /**
+   * Creates a new user account (admin operation).
+   *
+   * <p>Validates username and email uniqueness, resolves the target organization,
+   * and assigns the specified roles.</p>
+   *
+   * @param request the new user account details
+   * @return the created user's profile response
+   */
   @Transactional
   public CurrentUserResponse createUser(AdminCreateUserRequest request) {
     if (appUserRepository.existsByUsername(request.username())) {
@@ -100,6 +135,12 @@ public class UserService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Maps an AppUser entity to its full profile response DTO.
+   *
+   * @param user the user entity
+   * @return the current user response DTO
+   */
   CurrentUserResponse mapToResponse(AppUser user) {
     Organization org = user.getOrganization();
     return new CurrentUserResponse(
@@ -114,6 +155,12 @@ public class UserService {
     );
   }
 
+  /**
+   * Maps an AppUser entity to a lightweight summary DTO.
+   *
+   * @param user the user entity
+   * @return the user summary response DTO
+   */
   private UserSummaryResponse mapToSummary(AppUser user) {
     return new UserSummaryResponse(
         user.getId(),

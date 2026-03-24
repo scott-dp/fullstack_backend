@@ -14,7 +14,11 @@ import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
 
 /**
- * Seeds the database with a default organization and admin user on first run.
+ * Seeds the database with a default organization and sample users on first run.
+ *
+ * <p>Only executes when the user table is empty, ensuring idempotent behaviour.
+ * Creates one organization and three users (admin, manager, staff) with
+ * pre-configured credentials for development and testing purposes.</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -25,6 +29,11 @@ public class DataInitializer implements CommandLineRunner {
   private final OrganizationRepository organizationRepository;
   private final PasswordEncoder passwordEncoder;
 
+  /**
+   * Runs the seed logic on application startup if no users exist.
+   *
+   * @param args command-line arguments (ignored)
+   */
   @Override
   public void run(String... args) {
     if (userRepository.count() > 0) {

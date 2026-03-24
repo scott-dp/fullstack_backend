@@ -3,6 +3,7 @@ package stud.ntnu.no.fullstack_project.service;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -19,6 +20,13 @@ import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.Role;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 
+/**
+ * Service responsible for user authentication operations.
+ *
+ * <p>Handles registration, login, logout, and authentication status checks
+ * using JWT tokens stored in HTTP-only cookies.</p>
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -38,7 +46,15 @@ public class AuthService {
   @Value("${app.security.cookie-secure}")
   private boolean cookieSecure;
 
+  /**
+   * Registers a new user and immediately authenticates that user.
+   *
+   * @param request  incoming credential payload
+   * @param response HTTP response used to write the auth cookie
+   * @return authentication response for the newly registered user
+   */
   public AuthResponse register(AuthRequest request, HttpServletResponse response) {
+    log.info("Attempting to register user username={}", request.username());
     if (appUserRepository.existsByUsername(request.username())) {
       throw new IllegalArgumentException("Username is already taken");
     }
@@ -52,7 +68,15 @@ public class AuthService {
     return authenticate(request, response);
   }
 
+  /**
+   * Authenticates a user with the supplied credentials and sets a JWT cookie.
+   *
+   * @param request  incoming credential payload
+   * @param response HTTP response used to write the auth cookie
+   * @return authentication response containing the user profile
+   */
   public AuthResponse authenticate(AuthRequest request, HttpServletResponse response) {
+    log.info("Attempting to authenticate user username={}", request.username());
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(request.username(), request.password())
     );
@@ -66,6 +90,12 @@ public class AuthService {
     return new AuthResponse("Authentication successful", currentUser);
   }
 
+  /**
+   * Returns the current authentication status based on the provided JWT token.
+   *
+   * @param token the JWT token extracted from the request cookies, or {@code null}
+   * @return authentication status with user profile if authenticated
+   */
   public AuthStatusResponse getAuthStatus(String token) {
     if (token == null || token.isBlank() || !jwtService.isTokenValid(token)) {
       return new AuthStatusResponse(false, null);
@@ -81,10 +111,23 @@ public class AuthService {
     return new AuthStatusResponse(true, userService.mapToResponse(user));
   }
 
+  /**
+   * Logs the user out by clearing the authentication cookie.
+   *
+   * @param response HTTP response used to clear the auth cookie
+   */
   public void logout(HttpServletResponse response) {
+    log.info("Logging out user");
     addCookie(response, "", 0);
   }
 
+  /**
+   * Writes a JWT cookie to the HTTP response.
+   *
+   * @param response     HTTP response to add the cookie to
+   * @param token        the JWT token value
+   * @param maxAgeMillis maximum age of the cookie in milliseconds
+   */
   private void addCookie(HttpServletResponse response, String token, long maxAgeMillis) {
     ResponseCookie cookie = ResponseCookie.from(cookieName, token)
         .httpOnly(true)
