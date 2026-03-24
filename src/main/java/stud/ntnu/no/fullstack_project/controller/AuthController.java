@@ -20,9 +20,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import stud.ntnu.no.fullstack_project.dto.auth.AuthRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthResponse;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthStatusResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.MessageResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.RegisterRequest;
+import stud.ntnu.no.fullstack_project.dto.auth.RegistrationResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.VerificationResponse;
 import stud.ntnu.no.fullstack_project.exception.ApiError;
 import stud.ntnu.no.fullstack_project.service.AuthService;
 
@@ -52,23 +58,22 @@ public class AuthController {
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User registered successfully",
-          content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+          content = @Content(schema = @Schema(implementation = RegistrationResponse.class))),
       @ApiResponse(responseCode = "400", description = "Validation failed or username is already taken",
           content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
-  public ResponseEntity<AuthResponse> register(
+  public ResponseEntity<RegistrationResponse> register(
       @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Credentials for the new user account.",
           required = true,
-          content = @Content(schema = @Schema(implementation = AuthRequest.class),
+          content = @Content(schema = @Schema(implementation = RegisterRequest.class),
               examples = @ExampleObject(name = "Register request", value = """
-                  {"username": "scott", "password": "superSecret123"}
+                  {"username": "scott", "email": "scott@example.com", "password": "superSecret123"}
                   """)))
-      @Valid @RequestBody AuthRequest request,
-      HttpServletResponse response
+      @Valid @RequestBody RegisterRequest request
   ) {
     log.info("Attempting to register user username={}", request.username());
-    return ResponseEntity.ok(authService.register(request, response));
+    return ResponseEntity.ok(authService.register(request));
   }
 
   @PostMapping("/login")
@@ -87,15 +92,80 @@ public class AuthController {
       @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Credentials for authentication.",
           required = true,
-          content = @Content(schema = @Schema(implementation = AuthRequest.class),
+          content = @Content(schema = @Schema(implementation = LoginRequest.class),
               examples = @ExampleObject(name = "Login request", value = """
-                  {"username": "scott", "password": "superSecret123"}
+                  {"identifier": "scott@example.com", "password": "superSecret123"}
                   """)))
-      @Valid @RequestBody AuthRequest request,
+      @Valid @RequestBody LoginRequest request,
       HttpServletResponse response
   ) {
-    log.info("Attempting to authenticate user username={}", request.username());
+    log.info("Attempting to authenticate identifier={}", request.identifier());
     return ResponseEntity.ok(authService.authenticate(request, response));
+  }
+
+  @PostMapping("/email-code/request")
+  @Operation(
+      summary = "Send a one-time login code to email",
+      description = "Sends a one-time code to a verified email address for passwordless sign-in."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Login code sent successfully",
+          content = @Content(schema = @Schema(implementation = MessageResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Email not found or not verified",
+          content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  public ResponseEntity<MessageResponse> requestEmailCode(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Verified email address for code delivery.",
+          required = true,
+          content = @Content(schema = @Schema(implementation = EmailCodeRequest.class)))
+      @Valid @RequestBody EmailCodeRequest request
+  ) {
+    log.info("Email login code requested");
+    return ResponseEntity.ok(authService.requestEmailLoginCode(request));
+  }
+
+  @PostMapping("/email-code/login")
+  @Operation(
+      summary = "Authenticate with email and one-time code",
+      description = "Signs the user in using a previously emailed one-time login code."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Authenticated successfully",
+          content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Code expired or email not verified",
+          content = @Content(schema = @Schema(implementation = ApiError.class))),
+      @ApiResponse(responseCode = "401", description = "Invalid email or login code",
+          content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  public ResponseEntity<AuthResponse> loginWithEmailCode(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Email address and one-time code.",
+          required = true,
+          content = @Content(schema = @Schema(implementation = EmailCodeLoginRequest.class)))
+      @Valid @RequestBody EmailCodeLoginRequest request,
+      HttpServletResponse response
+  ) {
+    log.info("Email code login requested for email={}", request.email());
+    return ResponseEntity.ok(authService.authenticateWithEmailCode(request, response));
+  }
+
+  @GetMapping("/verify")
+  @Operation(
+      summary = "Verify a newly registered email address",
+      description = "Activates an account using the email verification token returned at registration time."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Email verified successfully",
+          content = @Content(schema = @Schema(implementation = VerificationResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid or expired token",
+          content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  public ResponseEntity<VerificationResponse> verifyEmail(
+      @org.springframework.web.bind.annotation.RequestParam String token
+  ) {
+    log.info("Email verification requested");
+    return ResponseEntity.ok(authService.verifyEmail(token));
   }
 
   @PostMapping("/logout")

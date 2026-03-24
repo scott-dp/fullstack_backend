@@ -88,6 +88,9 @@ public class UserService {
    * @return list of user summary responses
    */
   public List<UserSummaryResponse> listUsersInOrganization(Long organizationId) {
+    if (organizationId == null) {
+      return List.of();
+    }
     return appUserRepository.findByOrganizationId(organizationId).stream()
         .map(this::mapToSummary)
         .collect(Collectors.toList());
@@ -131,6 +134,7 @@ public class UserService {
     user.setFirstName(request.firstName());
     user.setLastName(request.lastName());
     user.setEmail(request.email());
+    user.setEmailVerified(true);
     user.setOrganization(org);
     user.setRoles(roles);
 

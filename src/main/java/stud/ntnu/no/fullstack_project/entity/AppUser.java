@@ -55,6 +55,21 @@ public class AppUser implements UserDetails {
   @Column(unique = true)
   private String email;
 
+  @Column(name = "email_verified", nullable = false)
+  private boolean emailVerified;
+
+  @Column(name = "email_verification_token", unique = true, length = 120)
+  private String emailVerificationToken;
+
+  @Column(name = "email_verification_expires_at")
+  private LocalDateTime emailVerificationExpiresAt;
+
+  @Column(name = "email_login_code", length = 6)
+  private String emailLoginCode;
+
+  @Column(name = "email_login_code_expires_at")
+  private LocalDateTime emailLoginCodeExpiresAt;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "organization_id")
   private Organization organization;

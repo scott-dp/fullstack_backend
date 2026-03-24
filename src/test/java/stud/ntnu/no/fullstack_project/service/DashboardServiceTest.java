@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.dashboard.DashboardResponse;
 import stud.ntnu.no.fullstack_project.entity.*;
+import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.ChecklistCompletionRepository;
 import stud.ntnu.no.fullstack_project.repository.ChecklistTemplateRepository;
 import stud.ntnu.no.fullstack_project.repository.DeviationRepository;
@@ -22,6 +23,9 @@ import stud.ntnu.no.fullstack_project.repository.TemperatureLogRepository;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
+
+  @Mock
+  private AppUserRepository appUserRepository;
 
   @Mock
   private ChecklistTemplateRepository checklistTemplateRepository;
@@ -62,6 +66,8 @@ class DashboardServiceTest {
 
   @Test
   void getDashboard_returnsAggregatedStats() {
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
+
     // Set up mock returns
     ChecklistTemplate t1 = new ChecklistTemplate();
     t1.setId(1L);
@@ -91,6 +97,9 @@ class DashboardServiceTest {
     DashboardResponse response = dashboardService.getDashboard(testUser);
 
     assertNotNull(response);
+    assertTrue(response.organizationAssigned());
+    assertEquals("Test Org", response.organizationName());
+    assertNull(response.message());
     assertEquals(3L, response.totalChecklistTemplates());
     assertEquals(7L, response.checklistsCompletedToday());
     assertEquals(3L, response.temperatureAlertsToday()); // 2 WARNING + 1 CRITICAL
@@ -101,6 +110,8 @@ class DashboardServiceTest {
 
   @Test
   void getDashboard_handlesZeroCountsCorrectly() {
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
+
     when(checklistTemplateRepository.findByOrganizationIdAndActiveTrue(1L))
         .thenReturn(List.of());
     when(checklistCompletionRepository.countByTemplateOrganizationIdAndCompletedAtAfter(
@@ -122,6 +133,7 @@ class DashboardServiceTest {
     DashboardResponse response = dashboardService.getDashboard(testUser);
 
     assertNotNull(response);
+    assertTrue(response.organizationAssigned());
     assertEquals(0L, response.totalChecklistTemplates());
     assertEquals(0L, response.checklistsCompletedToday());
     assertEquals(0L, response.temperatureAlertsToday());
@@ -132,6 +144,8 @@ class DashboardServiceTest {
 
   @Test
   void getDashboard_correctlyCallsAllRepositories() {
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
+
     when(checklistTemplateRepository.findByOrganizationIdAndActiveTrue(1L))
         .thenReturn(List.of());
     when(checklistCompletionRepository.countByTemplateOrganizationIdAndCompletedAtAfter(
@@ -194,11 +208,32 @@ class DashboardServiceTest {
         .thenReturn(0L);
     when(notificationRepository.countByUserIdAndReadFalse(5L))
         .thenReturn(0L);
+    when(appUserRepository.findById(5L)).thenReturn(java.util.Optional.of(otherUser));
 
     dashboardService.getDashboard(otherUser);
 
     verify(checklistTemplateRepository).findByOrganizationIdAndActiveTrue(42L);
     verify(deviationRepository).countByOrganizationIdAndStatus(42L, DeviationStatus.OPEN);
     verify(notificationRepository).countByUserIdAndReadFalse(5L);
+  }
+
+  @Test
+  void getDashboard_returnsEmptyStateWhenUserHasNoOrganization() {
+    testUser.setOrganization(null);
+    when(appUserRepository.findById(1L)).thenReturn(java.util.Optional.of(testUser));
+    when(notificationRepository.countByUserIdAndReadFalse(1L)).thenReturn(3L);
+
+    DashboardResponse response = dashboardService.getDashboard(testUser);
+
+    assertFalse(response.organizationAssigned());
+    assertNull(response.organizationName());
+    assertEquals("You have not joined an organization yet. Accept an invitation to get started.", response.message());
+    assertEquals(0L, response.totalChecklistTemplates());
+    assertEquals(0L, response.checklistsCompletedToday());
+    assertEquals(0L, response.temperatureAlertsToday());
+    assertEquals(0L, response.openDeviations());
+    assertEquals(0L, response.inProgressDeviations());
+    assertEquals(3L, response.unreadNotifications());
+    verifyNoInteractions(checklistTemplateRepository, checklistCompletionRepository, temperatureLogRepository, deviationRepository);
   }
 }
