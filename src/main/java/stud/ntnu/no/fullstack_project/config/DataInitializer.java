@@ -10,8 +10,10 @@ import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.Organization;
 import stud.ntnu.no.fullstack_project.entity.OrganizationType;
 import stud.ntnu.no.fullstack_project.entity.Role;
+import stud.ntnu.no.fullstack_project.entity.Supplier;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.repository.SupplierRepository;
 
 /**
  * Seeds the database with a default organization and sample users on first run.
@@ -27,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
 
   private final AppUserRepository userRepository;
   private final OrganizationRepository organizationRepository;
+  private final SupplierRepository supplierRepository;
   private final PasswordEncoder passwordEncoder;
 
   /**
@@ -83,6 +86,32 @@ public class DataInitializer implements CommandLineRunner {
     staff.setRoles(Set.of(Role.ROLE_STAFF));
     userRepository.save(staff);
 
-    log.info("Seed data initialized: 1 organization, 3 users (admin/manager/staff)");
+    seedSuppliers(org);
+
+    log.info("Seed data initialized: 1 organization, 3 users, 2 suppliers");
+  }
+
+  private void seedSuppliers(Organization org) {
+    Supplier s1 = new Supplier();
+    s1.setOrganization(org);
+    s1.setName("Norsk Sjømat AS");
+    s1.setOrganizationNumber("912345678");
+    s1.setContactName("Erik Hansen");
+    s1.setEmail("ordre@norsksjoemat.no");
+    s1.setPhone("+47 22 33 44 55");
+    s1.setAddress("Aker Brygge 12, 0250 Oslo");
+    s1.setNotes("Main seafood supplier. Delivers Mon/Wed/Fri.");
+    supplierRepository.save(s1);
+
+    Supplier s2 = new Supplier();
+    s2.setOrganization(org);
+    s2.setName("Oslo Drikke AS");
+    s2.setOrganizationNumber("987654321");
+    s2.setContactName("Maria Olsen");
+    s2.setEmail("salg@oslodrikke.no");
+    s2.setPhone("+47 55 66 77 88");
+    s2.setAddress("Grünerløkka 5, 0555 Oslo");
+    s2.setNotes("Beverage supplier for soft drinks and alcohol.");
+    supplierRepository.save(s2);
   }
 }
