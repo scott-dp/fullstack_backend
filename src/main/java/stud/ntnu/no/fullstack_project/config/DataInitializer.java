@@ -7,11 +7,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
+import stud.ntnu.no.fullstack_project.entity.ModuleType;
 import stud.ntnu.no.fullstack_project.entity.Organization;
 import stud.ntnu.no.fullstack_project.entity.OrganizationType;
+import stud.ntnu.no.fullstack_project.entity.ResponsibleRole;
 import stud.ntnu.no.fullstack_project.entity.Role;
+import stud.ntnu.no.fullstack_project.entity.TrainingCategory;
+import stud.ntnu.no.fullstack_project.entity.TrainingTemplate;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.repository.TrainingTemplateRepository;
 
 /**
  * Seeds the database with a default organization and sample users on first run.
@@ -28,6 +33,7 @@ public class DataInitializer implements CommandLineRunner {
   private final AppUserRepository userRepository;
   private final OrganizationRepository organizationRepository;
   private final PasswordEncoder passwordEncoder;
+  private final TrainingTemplateRepository trainingTemplateRepository;
 
   /**
    * Runs the seed logic on application startup if no users exist.
@@ -83,6 +89,65 @@ public class DataInitializer implements CommandLineRunner {
     staff.setRoles(Set.of(Role.ROLE_STAFF));
     userRepository.save(staff);
 
-    log.info("Seed data initialized: 1 organization, 3 users (admin/manager/staff)");
+    seedTrainingTemplates(org);
+
+    log.info("Seed data initialized: 1 organization, 3 users (admin/manager/staff), training templates");
+  }
+
+  /**
+   * Seeds default training templates for the given organization.
+   *
+   * @param org the organization to create training templates for
+   */
+  private void seedTrainingTemplates(Organization org) {
+    TrainingTemplate foodHygiene = new TrainingTemplate();
+    foodHygiene.setOrganization(org);
+    foodHygiene.setTitle("Basic food hygiene");
+    foodHygiene.setModuleType(ModuleType.IK_MAT);
+    foodHygiene.setCategory(TrainingCategory.FOOD_HYGIENE);
+    foodHygiene.setDescription("Covers basic food hygiene principles and safe food handling.");
+    foodHygiene.setRequiredForRole(ResponsibleRole.ALL);
+    foodHygiene.setMandatory(true);
+    foodHygiene.setValidityDays(365);
+    foodHygiene.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(foodHygiene);
+
+    TrainingTemplate allergen = new TrainingTemplate();
+    allergen.setOrganization(org);
+    allergen.setTitle("Allergen awareness");
+    allergen.setModuleType(ModuleType.IK_MAT);
+    allergen.setCategory(TrainingCategory.ALLERGENS);
+    allergen.setDescription("Training on allergen identification, labelling, and cross-contamination prevention.");
+    allergen.setRequiredForRole(ResponsibleRole.ALL);
+    allergen.setMandatory(true);
+    allergen.setValidityDays(365);
+    allergen.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(allergen);
+
+    TrainingTemplate ageControl = new TrainingTemplate();
+    ageControl.setOrganization(org);
+    ageControl.setTitle("Age verification and ID check");
+    ageControl.setModuleType(ModuleType.IK_ALKOHOL);
+    ageControl.setCategory(TrainingCategory.AGE_CONTROL);
+    ageControl.setDescription("Procedures for verifying customer age and handling ID checks.");
+    ageControl.setRequiredForRole(ResponsibleRole.ALL);
+    ageControl.setMandatory(true);
+    ageControl.setValidityDays(180);
+    ageControl.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(ageControl);
+
+    TrainingTemplate intoxication = new TrainingTemplate();
+    intoxication.setOrganization(org);
+    intoxication.setTitle("Refusing service to intoxicated guests");
+    intoxication.setModuleType(ModuleType.IK_ALKOHOL);
+    intoxication.setCategory(TrainingCategory.INTOXICATION_HANDLING);
+    intoxication.setDescription("Guidelines for identifying intoxicated guests and refusing service responsibly.");
+    intoxication.setRequiredForRole(ResponsibleRole.ALL);
+    intoxication.setMandatory(true);
+    intoxication.setValidityDays(180);
+    intoxication.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(intoxication);
+
+    log.info("Seeded 4 training templates");
   }
 }
