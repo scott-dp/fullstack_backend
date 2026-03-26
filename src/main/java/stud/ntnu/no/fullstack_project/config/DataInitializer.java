@@ -15,11 +15,8 @@ import stud.ntnu.no.fullstack_project.entity.Ingredient;
 import stud.ntnu.no.fullstack_project.entity.Organization;
 import stud.ntnu.no.fullstack_project.entity.OrganizationType;
 import stud.ntnu.no.fullstack_project.entity.Role;
-<<<<<<< HEAD
 import stud.ntnu.no.fullstack_project.repository.AllergenRepository;
-=======
 import stud.ntnu.no.fullstack_project.entity.Supplier;
->>>>>>> 1a9bd6c (add supplier, delivery, traceability and attachment modules)
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.DishIngredientRepository;
 import stud.ntnu.no.fullstack_project.repository.DishRepository;
@@ -41,14 +38,11 @@ public class DataInitializer implements CommandLineRunner {
 
   private final AppUserRepository userRepository;
   private final OrganizationRepository organizationRepository;
-<<<<<<< HEAD
   private final AllergenRepository allergenRepository;
   private final IngredientRepository ingredientRepository;
   private final DishRepository dishRepository;
   private final DishIngredientRepository dishIngredientRepository;
-=======
   private final SupplierRepository supplierRepository;
->>>>>>> 1a9bd6c (add supplier, delivery, traceability and attachment modules)
   private final PasswordEncoder passwordEncoder;
 
   /**
@@ -104,9 +98,8 @@ public class DataInitializer implements CommandLineRunner {
     staff.setOrganization(org);
     staff.setRoles(Set.of(Role.ROLE_STAFF));
     userRepository.save(staff);
-
-<<<<<<< HEAD
     seedAllergens();
+    seedSuppliers(org);
     seedAllergenData(org);
 
     log.info("Seed data initialized: 1 organization, 3 users, 14 allergens, "
@@ -216,10 +209,6 @@ public class DataInitializer implements CommandLineRunner {
     di.setIngredient(ingredient);
     di.setQuantityText(quantityText);
     dishIngredientRepository.save(di);
-=======
-    seedSuppliers(org);
-
-    log.info("Seed data initialized: 1 organization, 3 users, 2 suppliers");
   }
 
   private void seedSuppliers(Organization org) {
@@ -244,6 +233,5 @@ public class DataInitializer implements CommandLineRunner {
     s2.setAddress("Grünerløkka 5, 0555 Oslo");
     s2.setNotes("Beverage supplier for soft drinks and alcohol.");
     supplierRepository.save(s2);
->>>>>>> 1a9bd6c (add supplier, delivery, traceability and attachment modules)
   }
 }
