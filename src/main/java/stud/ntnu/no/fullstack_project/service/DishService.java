@@ -63,6 +63,7 @@ public class DishService {
     dish.setName(request.name());
     dish.setDescription(request.description());
     dish.setNotes(request.notes());
+    dish.setAllergenApprovalValid(false);
     dish = dishRepository.save(dish);
 
     if (request.ingredientIds() != null) {
@@ -98,6 +99,8 @@ public class DishService {
       dishIngredientRepository.deleteByDishId(dish.getId());
       saveDishIngredients(dish, request.ingredientIds());
     }
+
+    invalidateApproval(dish);
 
     dish = dishRepository.save(dish);
     log.info("Dish updated: {} (id={})", dish.getName(), dish.getId());
@@ -142,6 +145,7 @@ public class DishService {
 
     dish.setLastApprovedAt(LocalDateTime.now());
     dish.setLastApprovedBy(currentUser);
+    dish.setAllergenApprovalValid(true);
     dish = dishRepository.save(dish);
 
     log.info("Dish approved: {} (id={}) by {}", dish.getName(), dish.getId(),
@@ -171,6 +175,8 @@ public class DishService {
     override.setIncluded(request.included());
     override.setReason(request.reason());
     dishAllergenOverrideRepository.save(override);
+    invalidateApproval(dish);
+    dishRepository.save(dish);
 
     log.info("Override added to dish {} (id={}): allergen={}, included={}",
         dish.getName(), dish.getId(), allergen.getCode(), request.included());
@@ -198,6 +204,8 @@ public class DishService {
     }
 
     dishAllergenOverrideRepository.delete(override);
+    invalidateApproval(dish);
+    dishRepository.save(dish);
     log.info("Override removed from dish {} (id={}): overrideId={}",
         dish.getName(), dish.getId(), overrideId);
     return buildDishResponse(dish);
@@ -351,8 +359,7 @@ public class DishService {
             o.getReason()))
         .collect(Collectors.toList());
 
-    boolean changedSinceApproval = dish.getLastApprovedAt() == null
-        || (dish.getUpdatedAt() != null && dish.getUpdatedAt().isAfter(dish.getLastApprovedAt()));
+    boolean changedSinceApproval = dish.getLastApprovedAt() == null || !dish.isAllergenApprovalValid();
 
     return new DishResponse(
         dish.getId(),
@@ -369,5 +376,9 @@ public class DishService {
         dish.getCreatedAt(),
         dish.getUpdatedAt()
     );
+  }
+
+  private void invalidateApproval(Dish dish) {
+    dish.setAllergenApprovalValid(false);
   }
 }

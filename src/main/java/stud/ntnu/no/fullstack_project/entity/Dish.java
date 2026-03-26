@@ -22,7 +22,8 @@ import org.hibernate.annotations.UpdateTimestamp;
  * <p>A dish is composed of ingredients (tracked via {@link DishIngredient}) and
  * inherits allergen information from those ingredients. Allergen overrides may
  * be applied at the dish level through {@link DishAllergenOverride}. Approval
- * tracking is provided via {@code lastApprovedAt} and {@code lastApprovedBy}.</p>
+ * tracking is provided via {@code lastApprovedAt}, {@code lastApprovedBy}, and
+ * {@code allergenApprovalValid}.</p>
  */
 @Getter
 @Setter
@@ -54,6 +55,9 @@ public class Dish {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "last_approved_by")
   private AppUser lastApprovedBy;
+
+  @Column(name = "allergen_approval_valid", nullable = false)
+  private boolean allergenApprovalValid;
 
   @Column(length = 2000)
   private String notes;

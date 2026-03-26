@@ -118,6 +118,7 @@ class DishServiceTest {
     dish.setOrganization(testOrg);
     dish.setName(name);
     dish.setActive(true);
+    dish.setAllergenApprovalValid(false);
     dish.setCreatedAt(LocalDateTime.now());
     dish.setUpdatedAt(LocalDateTime.now());
     return dish;
@@ -265,6 +266,7 @@ class DishServiceTest {
     assertNotNull(response);
     assertNotNull(response.lastApprovedAt());
     assertEquals("admin", response.lastApprovedByUsername());
+    assertFalse(response.changedSinceApproval());
   }
 
   // --- addOverride tests ---
@@ -395,6 +397,7 @@ class DishServiceTest {
     Dish dish = buildDish(1L, "Modified Dish");
     dish.setLastApprovedAt(LocalDateTime.now().minusHours(1));
     dish.setLastApprovedBy(testUser);
+    dish.setAllergenApprovalValid(false);
     dish.setUpdatedAt(LocalDateTime.now());
 
     when(dishRepository.findById(1L)).thenReturn(Optional.of(dish));

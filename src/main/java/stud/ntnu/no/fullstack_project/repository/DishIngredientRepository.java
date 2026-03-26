@@ -8,5 +8,7 @@ public interface DishIngredientRepository extends JpaRepository<DishIngredient, 
 
   List<DishIngredient> findByDishId(Long dishId);
 
+  List<DishIngredient> findByIngredientId(Long ingredientId);
+
   void deleteByDishId(Long dishId);
 }

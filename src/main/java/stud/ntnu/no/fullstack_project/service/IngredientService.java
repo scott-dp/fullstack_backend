@@ -14,8 +14,12 @@ import stud.ntnu.no.fullstack_project.dto.allergen.IngredientResponse;
 import stud.ntnu.no.fullstack_project.dto.allergen.UpdateIngredientRequest;
 import stud.ntnu.no.fullstack_project.entity.Allergen;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
+import stud.ntnu.no.fullstack_project.entity.Dish;
+import stud.ntnu.no.fullstack_project.entity.DishIngredient;
 import stud.ntnu.no.fullstack_project.entity.Ingredient;
 import stud.ntnu.no.fullstack_project.repository.AllergenRepository;
+import stud.ntnu.no.fullstack_project.repository.DishIngredientRepository;
+import stud.ntnu.no.fullstack_project.repository.DishRepository;
 import stud.ntnu.no.fullstack_project.repository.IngredientRepository;
 
 /**
@@ -31,6 +35,8 @@ public class IngredientService {
 
   private final IngredientRepository ingredientRepository;
   private final AllergenRepository allergenRepository;
+  private final DishIngredientRepository dishIngredientRepository;
+  private final DishRepository dishRepository;
 
   /**
    * Creates a new ingredient with allergen associations.
@@ -82,6 +88,7 @@ public class IngredientService {
     }
 
     Ingredient saved = ingredientRepository.save(ingredient);
+    invalidateAffectedDishApprovals(saved.getId());
     log.info("Ingredient updated: {} (id={})", saved.getName(), saved.getId());
     return mapToResponse(saved);
   }
@@ -130,5 +137,18 @@ public class IngredientService {
         ingredient.getCreatedAt(),
         ingredient.getUpdatedAt()
     );
+  }
+
+  private void invalidateAffectedDishApprovals(Long ingredientId) {
+    List<DishIngredient> links = dishIngredientRepository.findByIngredientId(ingredientId);
+    if (links.isEmpty()) {
+      return;
+    }
+
+    List<Dish> affectedDishes = links.stream()
+        .map(DishIngredient::getDish)
+        .peek(dish -> dish.setAllergenApprovalValid(false))
+        .toList();
+    dishRepository.saveAll(affectedDishes);
   }
 }
