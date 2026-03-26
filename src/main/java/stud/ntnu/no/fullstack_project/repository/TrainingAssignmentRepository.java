@@ -15,6 +15,8 @@ public interface TrainingAssignmentRepository extends JpaRepository<TrainingAssi
   List<TrainingAssignment> findByAssigneeUserIdAndStatus(
       Long userId, TrainingAssignmentStatus status);
 
+  List<TrainingAssignment> findByTrainingTemplateId(Long trainingTemplateId);
+
   long countByTrainingTemplateOrganizationIdAndStatus(
       Long organizationId, TrainingAssignmentStatus status);
 }

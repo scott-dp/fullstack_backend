@@ -105,7 +105,7 @@ class TrainingServiceTest {
     CreateTrainingTemplateRequest request = new CreateTrainingTemplateRequest(
         "Basic food hygiene", "IK_MAT", "FOOD_HYGIENE",
         "Description", "Content text", "ALL",
-        true, 365, true, null
+        true, 365, true
     );
 
     when(trainingTemplateRepository.save(any(TrainingTemplate.class))).thenAnswer(invocation -> {
@@ -134,7 +134,7 @@ class TrainingServiceTest {
   void createTemplate_invalidModuleType_throwsIllegalArgumentException() {
     CreateTrainingTemplateRequest request = new CreateTrainingTemplateRequest(
         "Test", "INVALID_TYPE", "FOOD_HYGIENE",
-        null, null, "ALL", false, null, false, null
+        null, null, "ALL", false, null, false
     );
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -146,7 +146,7 @@ class TrainingServiceTest {
   void createTemplate_invalidCategory_throwsIllegalArgumentException() {
     CreateTrainingTemplateRequest request = new CreateTrainingTemplateRequest(
         "Test", "IK_MAT", "INVALID_CAT",
-        null, null, "ALL", false, null, false, null
+        null, null, "ALL", false, null, false
     );
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -158,7 +158,7 @@ class TrainingServiceTest {
   void createTemplate_invalidRole_throwsIllegalArgumentException() {
     CreateTrainingTemplateRequest request = new CreateTrainingTemplateRequest(
         "Test", "IK_MAT", "FOOD_HYGIENE",
-        null, null, "INVALID_ROLE", false, null, false, null
+        null, null, "INVALID_ROLE", false, null, false
     );
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,

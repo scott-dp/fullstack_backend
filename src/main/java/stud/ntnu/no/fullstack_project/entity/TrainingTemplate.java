@@ -66,9 +66,6 @@ public class TrainingTemplate {
   @Column(name = "acknowledgment_required", nullable = false)
   private boolean acknowledgmentRequired;
 
-  @Column(name = "linked_routine_id")
-  private Long linkedRoutineId;
-
   @Column(nullable = false)
   private boolean active = true;
 

@@ -229,6 +229,18 @@ public class DishController {
     return ResponseEntity.ok(dishService.removeOverride(id, overrideId));
   }
 
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+  @Operation(
+      summary = "Delete a dish",
+      description = "Deletes a dish and its ingredient links and allergen overrides."
+  )
+  public ResponseEntity<Void> deleteDish(@PathVariable Long id) {
+    log.info("Deleting dish id={}", id);
+    dishService.deleteDish(id);
+    return ResponseEntity.noContent().build();
+  }
+
   @GetMapping("/allergen-sheet")
   @Operation(
       summary = "Get the allergen sheet for the current user's organization",

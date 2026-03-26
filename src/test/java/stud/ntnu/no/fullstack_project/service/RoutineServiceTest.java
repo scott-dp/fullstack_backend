@@ -180,6 +180,29 @@ class RoutineServiceTest {
   }
 
   @Test
+  void unarchiveRoutine_setsActiveToTrue() {
+    Routine routine = buildRoutine(1L, "To Restore");
+    routine.setActive(false);
+    when(routineRepository.findById(1L)).thenReturn(Optional.of(routine));
+    when(routineRepository.save(any(Routine.class))).thenAnswer(i -> i.getArgument(0));
+
+    RoutineResponse response = routineService.unarchiveRoutine(1L);
+
+    assertTrue(response.active());
+  }
+
+  @Test
+  void deleteRoutine_removesReviewsAndRoutine() {
+    Routine routine = buildRoutine(1L, "To Delete");
+    when(routineRepository.findById(1L)).thenReturn(Optional.of(routine));
+
+    routineService.deleteRoutine(1L);
+
+    verify(routineReviewRepository).deleteByRoutineId(1L);
+    verify(routineRepository).delete(routine);
+  }
+
+  @Test
   void reviewRoutine_createsReviewAndUpdatesLastReviewed() {
     Routine routine = buildRoutine(1L, "Review Me");
     routine.setReviewIntervalDays(30);

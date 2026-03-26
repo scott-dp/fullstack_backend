@@ -17,7 +17,6 @@ import jakarta.validation.constraints.Size;
  * @param isMandatory            updated mandatory flag
  * @param validityDays           updated validity period in days
  * @param acknowledgmentRequired updated acknowledgment requirement
- * @param linkedRoutineId        updated linked routine identifier
  * @param active                 updated active status
  */
 @Schema(description = "Request payload for updating an existing training template.")
@@ -51,9 +50,6 @@ public record UpdateTrainingTemplateRequest(
 
     @Schema(description = "Updated acknowledgment requirement.", example = "false")
     Boolean acknowledgmentRequired,
-
-    @Schema(description = "Updated linked routine identifier.", example = "2")
-    Long linkedRoutineId,
 
     @Schema(description = "Updated active status.", example = "true")
     Boolean active

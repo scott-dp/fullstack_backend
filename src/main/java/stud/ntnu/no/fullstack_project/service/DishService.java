@@ -211,6 +211,16 @@ public class DishService {
     return buildDishResponse(dish);
   }
 
+  @Transactional
+  public void deleteDish(Long id) {
+    Dish dish = dishRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Dish not found with id: " + id));
+    dishAllergenOverrideRepository.deleteByDishId(id);
+    dishIngredientRepository.deleteByDishId(id);
+    dishRepository.delete(dish);
+    log.info("Dish deleted: id={}", id);
+  }
+
   /**
    * Generates an allergen sheet for all active dishes in an organization.
    *

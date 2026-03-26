@@ -190,6 +190,25 @@ public class RoutineService {
   }
 
   @Transactional
+  public RoutineResponse unarchiveRoutine(Long id) {
+    Routine routine = routineRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Routine not found with id: " + id));
+    routine.setActive(true);
+    Routine saved = routineRepository.save(routine);
+    log.info("Routine unarchived: id={}", saved.getId());
+    return mapToResponse(saved);
+  }
+
+  @Transactional
+  public void deleteRoutine(Long id) {
+    Routine routine = routineRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Routine not found with id: " + id));
+    routineReviewRepository.deleteByRoutineId(id);
+    routineRepository.delete(routine);
+    log.info("Routine deleted: id={}", id);
+  }
+
+  @Transactional
   public RoutineReviewResponse reviewRoutine(Long id, ReviewRoutineRequest request,
       AppUser currentUser) {
     Routine routine = routineRepository.findById(id)

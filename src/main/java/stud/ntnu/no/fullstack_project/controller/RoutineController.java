@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -91,6 +92,23 @@ public class RoutineController {
   public ResponseEntity<RoutineResponse> archiveRoutine(@PathVariable Long id) {
     log.info("Archiving routine id={}", id);
     return ResponseEntity.ok(routineService.archiveRoutine(id));
+  }
+
+  @PostMapping("/{id}/unarchive")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+  @Operation(summary = "Unarchive a routine")
+  public ResponseEntity<RoutineResponse> unarchiveRoutine(@PathVariable Long id) {
+    log.info("Unarchiving routine id={}", id);
+    return ResponseEntity.ok(routineService.unarchiveRoutine(id));
+  }
+
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+  @Operation(summary = "Delete a routine")
+  public ResponseEntity<Void> deleteRoutine(@PathVariable Long id) {
+    log.info("Deleting routine id={}", id);
+    routineService.deleteRoutine(id);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/{id}/review")

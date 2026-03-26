@@ -1,5 +1,6 @@
 package stud.ntnu.no.fullstack_project.repository;
 
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,4 +19,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
   @Modifying
   @Query("UPDATE Notification n SET n.read = true WHERE n.user.id = :userId AND n.read = false")
   void markAllAsRead(@Param("userId") Long userId);
+
+  void deleteByUserId(Long userId);
+
+  @Modifying
+  @Query("DELETE FROM Notification n WHERE n.referenceType = :referenceType AND n.referenceId IN :referenceIds")
+  void deleteByReferenceTypeAndReferenceIdIn(@Param("referenceType") String referenceType,
+      @Param("referenceIds") Collection<Long> referenceIds);
 }
