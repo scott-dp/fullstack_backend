@@ -59,7 +59,9 @@ public class DataInitializer implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
-    if (userRepository.count() > 0) {
+    seedSuperAdmin();
+
+    if (organizationRepository.count() > 0) {
       return;
     }
 
@@ -114,6 +116,25 @@ public class DataInitializer implements CommandLineRunner {
 
     log.info("Seed data initialized: 1 organization, 3 users, 14 allergens, "
         + "4 ingredients, 3 dishes, 2 suppliers, 4 training templates, 11 routines");
+  }
+
+  private void seedSuperAdmin() {
+    if (userRepository.existsByRolesContaining(Role.ROLE_SUPERADMIN)) {
+      return;
+    }
+
+    AppUser superAdmin = new AppUser();
+    superAdmin.setUsername("superadmin");
+    superAdmin.setPassword(passwordEncoder.encode("superadmin123"));
+    superAdmin.setFirstName("Platform");
+    superAdmin.setLastName("Superadmin");
+    superAdmin.setEmail("superadmin@iksystem.no");
+    superAdmin.setEmailVerified(true);
+    superAdmin.setEnabled(true);
+    superAdmin.setRoles(Set.of(Role.ROLE_SUPERADMIN));
+    userRepository.save(superAdmin);
+
+    log.info("Seeded default superadmin account username=superadmin");
   }
 
   private void seedAllergens() {

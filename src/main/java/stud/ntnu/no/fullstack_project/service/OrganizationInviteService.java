@@ -218,6 +218,7 @@ public class OrganizationInviteService {
       case ROLE_MANAGER -> new HashSet<>(Set.of(Role.ROLE_MANAGER, Role.ROLE_STAFF));
       case ROLE_STAFF -> new HashSet<>(Set.of(Role.ROLE_STAFF));
       case ROLE_ADMIN -> throw new IllegalArgumentException("Admin invitations are not supported");
+      case ROLE_SUPERADMIN -> throw new IllegalArgumentException("Superadmin invitations are not supported");
     };
   }
 

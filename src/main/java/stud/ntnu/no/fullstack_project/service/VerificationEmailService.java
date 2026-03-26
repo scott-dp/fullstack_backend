@@ -105,6 +105,48 @@ public class VerificationEmailService {
     }
   }
 
+  /**
+   * Sends the initial account setup email for an invited organization admin.
+   *
+   * @param recipientEmail recipient email
+   * @param setupLink one-time frontend setup link
+   * @param organizationName organization the admin will manage
+   */
+  public void sendAdminSetupEmail(String recipientEmail, String setupLink, String organizationName) {
+    logMailConfiguration("admin-setup");
+
+    if (!mailEnabled) {
+      log.info(
+          "Admin setup email sending is disabled. recipient={} organization={} setupLink={}",
+          recipientEmail,
+          organizationName,
+          setupLink
+      );
+      return;
+    }
+
+    SimpleMailMessage message = new SimpleMailMessage();
+    message.setFrom(fromAddress);
+    message.setTo(recipientEmail);
+    message.setSubject("Set up your IK System admin account");
+    message.setText("""
+        You have been invited as an administrator for %s.
+
+        Open this one-time link to set your password and activate your account:
+        %s
+
+        If you were not expecting this invitation, you can ignore this message.
+        """.formatted(organizationName, setupLink));
+
+    try {
+      mailSender.send(message);
+      log.info("Sent admin setup email to {}", recipientEmail);
+    } catch (MailException exception) {
+      log.error("Failed to send admin setup email to {}", recipientEmail, exception);
+      throw new IllegalStateException("Failed to send admin setup email");
+    }
+  }
+
   private void logMailConfiguration(String flow) {
     boolean passwordPresent = smtpPassword != null && !smtpPassword.isBlank();
     int passwordLength = passwordPresent ? smtpPassword.length() : 0;

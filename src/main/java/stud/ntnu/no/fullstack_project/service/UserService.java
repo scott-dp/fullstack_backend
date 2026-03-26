@@ -154,7 +154,29 @@ public class UserService {
     if (target.getId().equals(currentUser.getId())) {
       throw new IllegalArgumentException("You cannot delete your own account");
     }
-    if (target.getRoles().contains(Role.ROLE_ADMIN)) {
+
+    if (currentUser.getRoles().contains(Role.ROLE_SUPERADMIN)) {
+      if (!target.getRoles().contains(Role.ROLE_ADMIN) || target.getRoles().contains(Role.ROLE_SUPERADMIN)) {
+        throw new IllegalArgumentException("Superadmins can only archive organization admin accounts");
+      }
+      target.setEnabled(false);
+      target.setEmailLoginCode(null);
+      target.setEmailLoginCodeExpiresAt(null);
+      target.setAccountSetupToken(null);
+      target.setAccountSetupExpiresAt(null);
+      appUserRepository.save(target);
+      log.info("Organization admin archived by superadmin: id={}", userId);
+      return;
+    }
+
+    if (!currentUser.getRoles().contains(Role.ROLE_ADMIN)) {
+      throw new IllegalArgumentException("Only admins can delete this user");
+    }
+    if (currentUser.getOrganization() == null || target.getOrganization() == null
+        || !currentUser.getOrganization().getId().equals(target.getOrganization().getId())) {
+      throw new IllegalArgumentException("You can only delete users in your own organization");
+    }
+    if (target.getRoles().contains(Role.ROLE_ADMIN) || target.getRoles().contains(Role.ROLE_SUPERADMIN)) {
       throw new IllegalArgumentException("Admin users cannot be deleted");
     }
 
