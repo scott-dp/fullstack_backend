@@ -1,5 +1,7 @@
 package stud.ntnu.no.fullstack_project.config;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import stud.ntnu.no.fullstack_project.entity.AlcoholGroup;
 import stud.ntnu.no.fullstack_project.entity.Allergen;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
+import stud.ntnu.no.fullstack_project.entity.Bevilling;
+import stud.ntnu.no.fullstack_project.entity.BevillingCondition;
+import stud.ntnu.no.fullstack_project.entity.BevillingServingHours;
+import stud.ntnu.no.fullstack_project.entity.BevillingStatus;
+import stud.ntnu.no.fullstack_project.entity.BevillingType;
+import stud.ntnu.no.fullstack_project.entity.ConditionType;
 import stud.ntnu.no.fullstack_project.entity.Dish;
 import stud.ntnu.no.fullstack_project.entity.DishIngredient;
 import stud.ntnu.no.fullstack_project.entity.FrequencyType;
@@ -23,8 +32,12 @@ import stud.ntnu.no.fullstack_project.entity.RoutineCategory;
 import stud.ntnu.no.fullstack_project.entity.Supplier;
 import stud.ntnu.no.fullstack_project.entity.TrainingCategory;
 import stud.ntnu.no.fullstack_project.entity.TrainingTemplate;
+import stud.ntnu.no.fullstack_project.entity.Weekday;
 import stud.ntnu.no.fullstack_project.repository.AllergenRepository;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.BevillingConditionRepository;
+import stud.ntnu.no.fullstack_project.repository.BevillingRepository;
+import stud.ntnu.no.fullstack_project.repository.BevillingServingHoursRepository;
 import stud.ntnu.no.fullstack_project.repository.DishIngredientRepository;
 import stud.ntnu.no.fullstack_project.repository.DishRepository;
 import stud.ntnu.no.fullstack_project.repository.IngredientRepository;
@@ -34,12 +47,11 @@ import stud.ntnu.no.fullstack_project.repository.SupplierRepository;
 import stud.ntnu.no.fullstack_project.repository.TrainingTemplateRepository;
 
 /**
- * Seeds the database with a default organization and sample users on first run.
+ * Seeds the database with a default organization, users, and demo data on first run.
  *
- * <p>Only executes when the user table is empty, ensuring idempotent behaviour.
- * Creates one organization, three users (admin, manager, staff), the 14 EU
- * allergens, sample ingredients and dishes, sample suppliers, default
- * training templates, and example routines for development and testing.</p>
+ * <p>Creates one bootstrap superadmin plus one demo organization with users, allergens, ingredients,
+ * dishes, suppliers, training templates, routines, and a bevilling with conditions and serving
+ * hours.</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -56,6 +68,9 @@ public class DataInitializer implements CommandLineRunner {
   private final SupplierRepository supplierRepository;
   private final TrainingTemplateRepository trainingTemplateRepository;
   private final PasswordEncoder passwordEncoder;
+  private final BevillingRepository bevillingRepository;
+  private final BevillingConditionRepository bevillingConditionRepository;
+  private final BevillingServingHoursRepository bevillingServingHoursRepository;
 
   @Override
   public void run(String... args) {
@@ -113,9 +128,11 @@ public class DataInitializer implements CommandLineRunner {
     seedAllergenData(org);
     seedTrainingTemplates(org);
     seedRoutines(org, admin);
+    seedBevilling(org);
 
-    log.info("Seed data initialized: 1 organization, 3 users, 14 allergens, "
-        + "4 ingredients, 3 dishes, 2 suppliers, 4 training templates, 11 routines");
+    log.info(
+        "Seed data initialized: 1 organization, 3 users, 14 allergens, 4 ingredients, 3 dishes, "
+            + "2 suppliers, 4 training templates, 11 routines, 1 bevilling");
   }
 
   private void seedSuperAdmin() {
@@ -463,5 +480,63 @@ public class DataInitializer implements CommandLineRunner {
     r.setReviewIntervalDays(reviewDays);
     r.setCreatedBy(createdBy);
     return r;
+  }
+
+  private void seedBevilling(Organization org) {
+    if (bevillingRepository.count() > 0) {
+      return;
+    }
+
+    Bevilling bevilling = new Bevilling();
+    bevilling.setOrganization(org);
+    bevilling.setMunicipality("Trondheim");
+    bevilling.setBevillingType(BevillingType.SKJENKING);
+    bevilling.setValidFrom(LocalDate.of(2025, 1, 1));
+    bevilling.setValidTo(LocalDate.of(2027, 12, 31));
+    bevilling.setLicenseNumber("SK-2025-001");
+    bevilling.setStatus(BevillingStatus.ACTIVE);
+    bevilling.setAlcoholGroupsAllowed(
+        Set.of(AlcoholGroup.GROUP_1, AlcoholGroup.GROUP_2, AlcoholGroup.GROUP_3));
+    bevilling.setServingAreaDescription("Main dining room, bar area, and outdoor terrace");
+    bevilling.setIndoorAllowed(true);
+    bevilling.setOutdoorAllowed(true);
+    bevilling.setStyrerName("Restaurant Manager");
+    bevilling.setStedfortrederName("System Administrator");
+    bevilling.setNotes("Renewed annually by Trondheim kommune");
+    bevilling = bevillingRepository.save(bevilling);
+
+    BevillingCondition cond1 = new BevillingCondition();
+    cond1.setBevilling(bevilling);
+    cond1.setConditionType(ConditionType.FOOD_REQUIREMENT);
+    cond1.setTitle("Food must be available");
+    cond1.setDescription("Hot food must be available during all serving hours.");
+    cond1.setActive(true);
+    bevillingConditionRepository.save(cond1);
+
+    BevillingCondition cond2 = new BevillingCondition();
+    cond2.setBevilling(bevilling);
+    cond2.setConditionType(ConditionType.TRAINING_REQUIREMENT);
+    cond2.setTitle("Staff training required");
+    cond2.setDescription("All serving staff must complete responsible alcohol service training.");
+    cond2.setActive(true);
+    bevillingConditionRepository.save(cond2);
+
+    for (Weekday day : Weekday.values()) {
+      BevillingServingHours hours = new BevillingServingHours();
+      hours.setBevilling(bevilling);
+      hours.setWeekday(day);
+      if (day == Weekday.FRI || day == Weekday.SAT) {
+        hours.setStartTime(LocalTime.of(11, 0));
+        hours.setEndTime(LocalTime.of(2, 0));
+      } else if (day == Weekday.SUN) {
+        hours.setStartTime(LocalTime.of(12, 0));
+        hours.setEndTime(LocalTime.of(22, 0));
+      } else {
+        hours.setStartTime(LocalTime.of(11, 0));
+        hours.setEndTime(LocalTime.of(0, 0));
+      }
+      hours.setConsumptionDeadlineMinutesAfterEnd(30);
+      bevillingServingHoursRepository.save(hours);
+    }
   }
 }
