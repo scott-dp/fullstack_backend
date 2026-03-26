@@ -11,12 +11,15 @@ import stud.ntnu.no.fullstack_project.entity.Allergen;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.Dish;
 import stud.ntnu.no.fullstack_project.entity.DishIngredient;
+import stud.ntnu.no.fullstack_project.entity.FrequencyType;
 import stud.ntnu.no.fullstack_project.entity.Ingredient;
 import stud.ntnu.no.fullstack_project.entity.ModuleType;
 import stud.ntnu.no.fullstack_project.entity.Organization;
 import stud.ntnu.no.fullstack_project.entity.OrganizationType;
 import stud.ntnu.no.fullstack_project.entity.ResponsibleRole;
 import stud.ntnu.no.fullstack_project.entity.Role;
+import stud.ntnu.no.fullstack_project.entity.Routine;
+import stud.ntnu.no.fullstack_project.entity.RoutineCategory;
 import stud.ntnu.no.fullstack_project.entity.Supplier;
 import stud.ntnu.no.fullstack_project.entity.TrainingCategory;
 import stud.ntnu.no.fullstack_project.entity.TrainingTemplate;
@@ -26,6 +29,7 @@ import stud.ntnu.no.fullstack_project.repository.DishIngredientRepository;
 import stud.ntnu.no.fullstack_project.repository.DishRepository;
 import stud.ntnu.no.fullstack_project.repository.IngredientRepository;
 import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.repository.RoutineRepository;
 import stud.ntnu.no.fullstack_project.repository.SupplierRepository;
 import stud.ntnu.no.fullstack_project.repository.TrainingTemplateRepository;
 
@@ -34,8 +38,8 @@ import stud.ntnu.no.fullstack_project.repository.TrainingTemplateRepository;
  *
  * <p>Only executes when the user table is empty, ensuring idempotent behaviour.
  * Creates one organization, three users (admin, manager, staff), the 14 EU
- * allergens, sample ingredients and dishes, sample suppliers, and default
- * training templates for development and testing.</p>
+ * allergens, sample ingredients and dishes, sample suppliers, default
+ * training templates, and example routines for development and testing.</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -48,15 +52,11 @@ public class DataInitializer implements CommandLineRunner {
   private final IngredientRepository ingredientRepository;
   private final DishRepository dishRepository;
   private final DishIngredientRepository dishIngredientRepository;
+  private final RoutineRepository routineRepository;
   private final SupplierRepository supplierRepository;
   private final TrainingTemplateRepository trainingTemplateRepository;
   private final PasswordEncoder passwordEncoder;
 
-  /**
-   * Runs the seed logic on application startup if no users exist.
-   *
-   * @param args command-line arguments (ignored)
-   */
   @Override
   public void run(String... args) {
     if (userRepository.count() > 0) {
@@ -110,9 +110,10 @@ public class DataInitializer implements CommandLineRunner {
     seedSuppliers(org);
     seedAllergenData(org);
     seedTrainingTemplates(org);
+    seedRoutines(org, admin);
 
     log.info("Seed data initialized: 1 organization, 3 users, 14 allergens, "
-        + "3 ingredients, 3 dishes, suppliers, training templates");
+        + "4 ingredients, 3 dishes, 2 suppliers, 4 training templates, 11 routines");
   }
 
   private void seedAllergens() {
@@ -148,11 +149,6 @@ public class DataInitializer implements CommandLineRunner {
     log.info("Seeded 14 EU allergens");
   }
 
-  /**
-   * Seeds example ingredients and dishes for the given organization.
-   *
-   * @param org the organization to associate ingredients and dishes with
-   */
   private void seedAllergenData(Organization org) {
     if (ingredientRepository.count() > 0) {
       return;
@@ -253,11 +249,6 @@ public class DataInitializer implements CommandLineRunner {
     log.info("Seeded 2 suppliers");
   }
 
-  /**
-   * Seeds default training templates for the given organization.
-   *
-   * @param org the organization to create training templates for
-   */
   private void seedTrainingTemplates(Organization org) {
     if (trainingTemplateRepository.count() > 0) {
       return;
@@ -314,5 +305,142 @@ public class DataInitializer implements CommandLineRunner {
     trainingTemplateRepository.save(intoxication);
 
     log.info("Seeded 4 training templates");
+  }
+
+  private void seedRoutines(Organization org, AppUser admin) {
+    if (routineRepository.count() > 0) {
+      return;
+    }
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Morning fridge temperature control", ModuleType.IK_MAT, RoutineCategory.TEMPERATURE,
+        "Check all fridge/cooler units before service starts.",
+        "Ensure food is stored at safe temperatures at all times.",
+        ResponsibleRole.STAFF, FrequencyType.DAILY,
+        "1. Open each fridge and read thermometer\n2. Record temperature in system\n3. Flag any reading above 4°C",
+        "Temperature above 4°C in any fridge unit.",
+        "Adjust thermostat, move food to working unit, notify manager.",
+        "Photo of thermometer reading.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Freezer temperature control", ModuleType.IK_MAT, RoutineCategory.TEMPERATURE,
+        "Check freezer temperatures daily.",
+        "Ensure frozen goods remain at safe storage temperatures.",
+        ResponsibleRole.STAFF, FrequencyType.DAILY,
+        "1. Check each freezer display\n2. Record in system\n3. Flag any reading above -18°C",
+        "Temperature above -18°C.", "Contact maintenance, relocate items.",
+        "Temperature log entry.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Daily cleaning of prep surfaces", ModuleType.IK_MAT, RoutineCategory.CLEANING,
+        "Clean and sanitize all food preparation surfaces after each shift.",
+        "Prevent cross-contamination and maintain hygiene.",
+        ResponsibleRole.STAFF, FrequencyType.DAILY,
+        "1. Clear surface\n2. Wash with hot soapy water\n3. Sanitize\n4. Air dry",
+        "Surfaces not cleaned between different food types.",
+        "Re-clean immediately, re-train staff.", "Completed checklist.", 90));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Weekly deep cleaning", ModuleType.IK_MAT, RoutineCategory.CLEANING,
+        "Deep clean all kitchen areas weekly.",
+        "Maintain overall kitchen hygiene standards.",
+        ResponsibleRole.MANAGER, FrequencyType.WEEKLY,
+        "1. Disassemble equipment\n2. Deep clean all surfaces\n3. Clean drains\n4. Inspect for pests",
+        "Areas missed or not properly cleaned.",
+        "Re-clean and document.", "Signed cleaning log.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Allergen information review", ModuleType.IK_MAT, RoutineCategory.ALLERGENS,
+        "Review allergen information for all menu items.",
+        "Ensure accurate allergen information is available for customers.",
+        ResponsibleRole.MANAGER, FrequencyType.MONTHLY,
+        "1. Review ingredient lists\n2. Update allergen matrix\n3. Print updated allergen sheet",
+        "Missing or outdated allergen information.",
+        "Update records immediately, inform staff.", "Updated allergen sheet.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Goods receiving and traceability", ModuleType.IK_MAT, RoutineCategory.TRACEABILITY,
+        "Inspect and log all incoming deliveries.",
+        "Maintain traceability and reject non-conforming goods.",
+        ResponsibleRole.STAFF, FrequencyType.EVENT_BASED,
+        "1. Check delivery against order\n2. Inspect temperatures\n3. Record batch/lot numbers\n4. Store properly",
+        "Damaged goods, wrong temperature, missing documentation.",
+        "Reject delivery, notify supplier, document.", "Delivery log with signature.", 90));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "HACCP hazard review for hot holding", ModuleType.IK_MAT, RoutineCategory.HACCP,
+        "Verify hot-held food stays above 60°C.",
+        "Prevent bacterial growth in hot-held food.",
+        ResponsibleRole.STAFF, FrequencyType.SHIFT_BASED,
+        "1. Check temperature of each hot-held item\n2. Record readings\n3. Discard food below 60°C held for over 2 hours",
+        "Temperature below 60°C.", "Reheat to 75°C or discard.",
+        "Temperature readings.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "ID check at bar", ModuleType.IK_ALKOHOL, RoutineCategory.AGE_CONTROL,
+        "Verify age of all customers who appear under 25.",
+        "Prevent service of alcohol to minors.",
+        ResponsibleRole.STAFF, FrequencyType.SHIFT_BASED,
+        "1. Ask for valid ID\n2. Check photo matches\n3. Verify date of birth\n4. Refuse if under 18 or no valid ID",
+        "Serving alcohol without checking ID when required.",
+        "Refuse service, log incident, notify manager.",
+        "Incident log entry.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Monitoring intoxication during shift", ModuleType.IK_ALKOHOL,
+        RoutineCategory.INTOXICATION,
+        "Observe guests for signs of intoxication throughout service.",
+        "Comply with alcohol service laws and ensure guest safety.",
+        ResponsibleRole.STAFF, FrequencyType.SHIFT_BASED,
+        "1. Observe guest behavior\n2. Assess level of intoxication\n3. Refuse further service if intoxicated\n4. Log refusals",
+        "Continuing to serve visibly intoxicated guests.",
+        "Stop service immediately, offer water/food, call taxi if needed.",
+        "Refusal log entry.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "End-of-service closing control", ModuleType.IK_ALKOHOL, RoutineCategory.CLOSING,
+        "Ensure all alcohol service stops at permitted closing time.",
+        "Comply with bevilling serving hour conditions.",
+        ResponsibleRole.MANAGER, FrequencyType.DAILY,
+        "1. Announce last call 30 min before closing\n2. Stop serving at closing time\n3. Allow consumption deadline\n4. Clear premises",
+        "Alcohol served after permitted hours.",
+        "Stop immediately, document, review procedures.",
+        "Closing checklist.", 30));
+
+    routineRepository.save(buildRoutine(org, admin,
+        "Preventing alcohol taken outside serving area", ModuleType.IK_ALKOHOL,
+        RoutineCategory.LICENSE_CONDITIONS,
+        "Ensure guests do not take drinks outside the licensed serving area.",
+        "Comply with bevilling area conditions.",
+        ResponsibleRole.STAFF, FrequencyType.SHIFT_BASED,
+        "1. Monitor exits\n2. Remind guests of serving area boundaries\n3. Collect glasses near exits",
+        "Guests taking drinks outside permitted area.",
+        "Ask guest to return, collect drink, log if repeated.",
+        "Incident log.", 90));
+
+    log.info("Seeded {} routines", 11);
+  }
+
+  private Routine buildRoutine(Organization org, AppUser createdBy, String name,
+      ModuleType moduleType, RoutineCategory category, String description,
+      String purpose, ResponsibleRole role, FrequencyType freq,
+      String steps, String deviationText, String correctiveAction,
+      String evidence, int reviewDays) {
+    Routine r = new Routine();
+    r.setOrganization(org);
+    r.setName(name);
+    r.setModuleType(moduleType);
+    r.setCategory(category);
+    r.setDescription(description);
+    r.setPurpose(purpose);
+    r.setResponsibleRole(role);
+    r.setFrequencyType(freq);
+    r.setStepsText(steps);
+    r.setWhatIsDeviationText(deviationText);
+    r.setCorrectiveActionText(correctiveAction);
+    r.setRequiredEvidenceText(evidence);
+    r.setReviewIntervalDays(reviewDays);
+    r.setCreatedBy(createdBy);
+    return r;
   }
 }
