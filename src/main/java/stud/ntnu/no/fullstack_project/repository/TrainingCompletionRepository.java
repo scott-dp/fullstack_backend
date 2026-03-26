@@ -7,4 +7,6 @@ import stud.ntnu.no.fullstack_project.entity.TrainingCompletion;
 public interface TrainingCompletionRepository extends JpaRepository<TrainingCompletion, Long> {
 
   List<TrainingCompletion> findByTrainingAssignmentIdOrderByCompletedAtDesc(Long assignmentId);
+
+  void deleteByTrainingAssignmentIdIn(List<Long> assignmentIds);
 }

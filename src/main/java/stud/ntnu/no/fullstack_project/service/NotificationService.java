@@ -105,6 +105,16 @@ public class NotificationService {
     log.info("All notifications marked as read for user {}", userId);
   }
 
+  @Transactional
+  public void deleteNotificationsForReferences(String referenceType, List<Long> referenceIds) {
+    if (referenceIds == null || referenceIds.isEmpty()) {
+      return;
+    }
+    notificationRepository.deleteByReferenceTypeAndReferenceIdIn(referenceType, referenceIds);
+    log.info("Deleted notifications for referenceType={} count={}", referenceType,
+        referenceIds.size());
+  }
+
   /**
    * Maps a notification entity to its response DTO.
    *

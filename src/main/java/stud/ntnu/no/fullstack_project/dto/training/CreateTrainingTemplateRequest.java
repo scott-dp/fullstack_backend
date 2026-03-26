@@ -17,7 +17,6 @@ import jakarta.validation.constraints.Size;
  * @param isMandatory            whether the training is mandatory
  * @param validityDays           number of days the training remains valid
  * @param acknowledgmentRequired whether acknowledgment is required on completion
- * @param linkedRoutineId        optional linked routine identifier
  */
 @Schema(description = "Request payload for creating a new training template.")
 public record CreateTrainingTemplateRequest(
@@ -52,8 +51,5 @@ public record CreateTrainingTemplateRequest(
     Integer validityDays,
 
     @Schema(description = "Whether acknowledgment is required on completion.", example = "true")
-    boolean acknowledgmentRequired,
-
-    @Schema(description = "Optional linked routine identifier.", example = "1")
-    Long linkedRoutineId
+    boolean acknowledgmentRequired
 ) {}

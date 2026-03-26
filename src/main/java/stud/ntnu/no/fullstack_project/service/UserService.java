@@ -1,6 +1,9 @@
 package stud.ntnu.no.fullstack_project.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +94,7 @@ public class UserService {
     if (organizationId == null) {
       return List.of();
     }
-    return appUserRepository.findByOrganizationId(organizationId).stream()
+    return appUserRepository.findByOrganizationIdAndEnabledTrue(organizationId).stream()
         .map(this::mapToSummary)
         .collect(Collectors.toList());
   }
@@ -141,6 +144,35 @@ public class UserService {
     AppUser saved = appUserRepository.save(user);
     log.info("User created by admin: {} (id={})", saved.getUsername(), saved.getId());
     return mapToResponse(saved);
+  }
+
+  @Transactional
+  public void deleteUser(Long userId, AppUser currentUser) {
+    AppUser target = appUserRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+    if (target.getId().equals(currentUser.getId())) {
+      throw new IllegalArgumentException("You cannot delete your own account");
+    }
+    if (target.getRoles().contains(Role.ROLE_ADMIN)) {
+      throw new IllegalArgumentException("Admin users cannot be deleted");
+    }
+
+    String suffix = "deleted_" + target.getId() + "_"
+        + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now());
+    target.setEnabled(false);
+    target.setOrganization(null);
+    target.setRoles(new HashSet<>());
+    target.setUsername(suffix + "_" + target.getUsername());
+    target.setEmail(null);
+    target.setEmailVerified(false);
+    target.setEmailVerificationToken(null);
+    target.setEmailVerificationExpiresAt(null);
+    target.setEmailLoginCode(null);
+    target.setEmailLoginCodeExpiresAt(null);
+
+    appUserRepository.save(target);
+    log.info("User soft-deleted by admin: id={}", userId);
   }
 
   /**

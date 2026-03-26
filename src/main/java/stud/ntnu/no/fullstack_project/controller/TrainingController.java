@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -149,6 +150,18 @@ public class TrainingController {
   ) {
     log.info("Updating training template id={}", id);
     return ResponseEntity.ok(trainingService.updateTemplate(id, request));
+  }
+
+  @DeleteMapping("/templates/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+  @Operation(
+      summary = "Delete a training template",
+      description = "Deletes a training template and all of its assignments and completions."
+  )
+  public ResponseEntity<Void> deleteTemplate(@PathVariable Long id) {
+    log.info("Deleting training template id={}", id);
+    trainingService.deleteTemplate(id);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/templates/{id}/assign")

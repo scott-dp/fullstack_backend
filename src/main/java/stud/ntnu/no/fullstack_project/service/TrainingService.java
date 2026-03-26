@@ -91,7 +91,6 @@ public class TrainingService {
     template.setMandatory(request.isMandatory());
     template.setValidityDays(request.validityDays());
     template.setAcknowledgmentRequired(request.acknowledgmentRequired());
-    template.setLinkedRoutineId(request.linkedRoutineId());
 
     TrainingTemplate saved = trainingTemplateRepository.save(template);
     log.info("Training template created: {} (id={})", saved.getTitle(), saved.getId());
@@ -183,9 +182,6 @@ public class TrainingService {
     }
     if (request.acknowledgmentRequired() != null) {
       template.setAcknowledgmentRequired(request.acknowledgmentRequired());
-    }
-    if (request.linkedRoutineId() != null) {
-      template.setLinkedRoutineId(request.linkedRoutineId());
     }
     if (request.active() != null) {
       template.setActive(request.active());
@@ -339,6 +335,27 @@ public class TrainingService {
         totalTemplates, totalAssignments, completedCount, overdueCount, completionRate);
   }
 
+  @Transactional
+  public void deleteTemplate(Long id) {
+    TrainingTemplate template = trainingTemplateRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Training template not found with id: " + id));
+
+    List<TrainingAssignment> assignments = trainingAssignmentRepository.findByTrainingTemplateId(id);
+    List<Long> assignmentIds = assignments.stream()
+        .map(TrainingAssignment::getId)
+        .toList();
+
+    if (!assignmentIds.isEmpty()) {
+      trainingCompletionRepository.deleteByTrainingAssignmentIdIn(assignmentIds);
+      notificationService.deleteNotificationsForReferences("TRAINING_ASSIGNMENT", assignmentIds);
+      trainingAssignmentRepository.deleteAll(assignments);
+    }
+
+    trainingTemplateRepository.delete(template);
+    log.info("Training template deleted: id={}", id);
+  }
+
   /**
    * Maps a training template entity to its response DTO.
    *
@@ -358,7 +375,6 @@ public class TrainingService {
         template.isMandatory(),
         template.getValidityDays(),
         template.isAcknowledgmentRequired(),
-        template.getLinkedRoutineId(),
         template.isActive(),
         template.getCreatedAt(),
         template.getUpdatedAt()

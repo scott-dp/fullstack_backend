@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
  * @param isMandatory            whether the training is mandatory
  * @param validityDays           number of days the training remains valid
  * @param acknowledgmentRequired whether acknowledgment is required
- * @param linkedRoutineId        linked routine identifier, or {@code null}
  * @param active                 whether the template is active
  * @param createdAt              creation timestamp
  * @param updatedAt              last update timestamp
@@ -56,9 +55,6 @@ public record TrainingTemplateResponse(
 
     @Schema(description = "Whether acknowledgment is required.", example = "true")
     boolean acknowledgmentRequired,
-
-    @Schema(description = "Linked routine identifier.", example = "1")
-    Long linkedRoutineId,
 
     @Schema(description = "Whether the template is active.", example = "true")
     boolean active,

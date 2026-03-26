@@ -163,7 +163,7 @@ class UserServiceTest {
     user2.setOrganization(testOrg);
     user2.setRoles(new HashSet<>(Set.of(Role.ROLE_MANAGER)));
 
-    when(appUserRepository.findByOrganizationId(1L)).thenReturn(List.of(testUser, user2));
+    when(appUserRepository.findByOrganizationIdAndEnabledTrue(1L)).thenReturn(List.of(testUser, user2));
 
     List<UserSummaryResponse> result = userService.listUsersInOrganization(1L);
 
@@ -174,7 +174,7 @@ class UserServiceTest {
 
   @Test
   void listUsersInOrganization_emptyOrg_returnsEmpty() {
-    when(appUserRepository.findByOrganizationId(99L)).thenReturn(List.of());
+    when(appUserRepository.findByOrganizationIdAndEnabledTrue(99L)).thenReturn(List.of());
 
     List<UserSummaryResponse> result = userService.listUsersInOrganization(99L);
 
@@ -266,5 +266,36 @@ class UserServiceTest {
     when(organizationRepository.findById(1L)).thenReturn(Optional.of(testOrg));
 
     assertThrows(IllegalArgumentException.class, () -> userService.createUser(request));
+  }
+
+  @Test
+  void deleteUser_softDeletesStaffUser() {
+    AppUser adminUser = new AppUser();
+    adminUser.setId(9L);
+    adminUser.setUsername("admin");
+    adminUser.setRoles(new HashSet<>(Set.of(Role.ROLE_ADMIN)));
+
+    when(appUserRepository.findById(1L)).thenReturn(Optional.of(testUser));
+    when(appUserRepository.save(any(AppUser.class))).thenAnswer(i -> i.getArgument(0));
+
+    userService.deleteUser(1L, adminUser);
+
+    assertFalse(testUser.isEnabled());
+    assertNull(testUser.getOrganization());
+    assertNull(testUser.getEmail());
+    assertTrue(testUser.getRoles().isEmpty());
+    verify(appUserRepository).save(testUser);
+  }
+
+  @Test
+  void deleteUser_cannotDeleteSelf() {
+    AppUser adminUser = new AppUser();
+    adminUser.setId(1L);
+    adminUser.setUsername("admin");
+    adminUser.setRoles(new HashSet<>(Set.of(Role.ROLE_ADMIN)));
+
+    when(appUserRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+    assertThrows(IllegalArgumentException.class, () -> userService.deleteUser(1L, adminUser));
   }
 }

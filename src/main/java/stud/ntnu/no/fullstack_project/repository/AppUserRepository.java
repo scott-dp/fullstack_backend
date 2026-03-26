@@ -17,6 +17,8 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
   List<AppUser> findByOrganizationId(Long organizationId);
 
+  List<AppUser> findByOrganizationIdAndEnabledTrue(Long organizationId);
+
   boolean existsByEmail(String email);
 
   Optional<AppUser> findByEmailVerificationToken(String token);

@@ -118,6 +118,18 @@ public class IngredientService {
         .collect(Collectors.toList());
   }
 
+  @Transactional
+  public void deleteIngredient(Long id) {
+    Ingredient ingredient = ingredientRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Ingredient not found with id: " + id));
+
+    invalidateAffectedDishApprovals(id);
+    dishIngredientRepository.deleteByIngredientId(id);
+    ingredientRepository.delete(ingredient);
+    log.info("Ingredient deleted: id={}", id);
+  }
+
   /**
    * Maps an ingredient entity to its response DTO.
    *

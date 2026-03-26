@@ -82,4 +82,20 @@ class IngredientServiceTest {
     assertFalse(dish.isAllergenApprovalValid());
     verify(dishRepository).saveAll(List.of(dish));
   }
+
+  @Test
+  void deleteIngredient_removesLinksAndIngredient() {
+    DishIngredient dishIngredient = new DishIngredient();
+    dishIngredient.setDish(dish);
+    dishIngredient.setIngredient(ingredient);
+    when(ingredientRepository.findById(1L)).thenReturn(Optional.of(ingredient));
+    when(dishIngredientRepository.findByIngredientId(1L)).thenReturn(List.of(dishIngredient));
+
+    ingredientService.deleteIngredient(1L);
+
+    assertFalse(dish.isAllergenApprovalValid());
+    verify(dishRepository).saveAll(List.of(dish));
+    verify(dishIngredientRepository).deleteByIngredientId(1L);
+    verify(ingredientRepository).delete(ingredient);
+  }
 }

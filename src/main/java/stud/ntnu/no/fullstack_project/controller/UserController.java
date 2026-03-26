@@ -17,6 +17,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -139,5 +141,20 @@ public class UserController {
   ) {
     log.info("Admin creating user username={}", request.username());
     return ResponseEntity.ok(userService.createUser(request));
+  }
+
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Delete a staff or manager user",
+      description = "Soft-deletes a non-admin user account so it no longer appears in user management or can log in."
+  )
+  public ResponseEntity<Void> deleteUser(
+      @PathVariable Long id,
+      @AuthenticationPrincipal AppUser currentUser
+  ) {
+    log.info("Admin deleting user id={} by user={}", id, currentUser.getUsername());
+    userService.deleteUser(id, currentUser);
+    return ResponseEntity.noContent().build();
   }
 }

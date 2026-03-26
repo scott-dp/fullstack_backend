@@ -18,15 +18,12 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-/**
- * Represents a reusable training template that can be assigned to employees.
- */
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "training_templates")
-public class TrainingTemplate {
+@Table(name = "routines")
+public class Routine {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,37 +34,61 @@ public class TrainingTemplate {
   private Organization organization;
 
   @Column(nullable = false)
-  private String title;
+  private String name;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "module_type", nullable = false)
   private ModuleType moduleType;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private RoutineCategory category;
+
   @Column(length = 2000)
   private String description;
 
-  @Column(name = "content_text", length = 4000)
-  private String contentText;
+  @Column(length = 1000)
+  private String purpose;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private TrainingCategory category;
+  @Column(name = "responsible_role", nullable = false)
+  private ResponsibleRole responsibleRole;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "required_for_role", nullable = false)
-  private ResponsibleRole requiredForRole;
+  @Column(name = "frequency_type", nullable = false)
+  private FrequencyType frequencyType;
 
-  @Column(name = "is_mandatory", nullable = false)
-  private boolean isMandatory;
+  @Column(name = "steps_text", length = 4000)
+  private String stepsText;
 
-  @Column(name = "validity_days")
-  private Integer validityDays;
+  @Column(name = "what_is_deviation_text", length = 2000)
+  private String whatIsDeviationText;
 
-  @Column(name = "acknowledgment_required", nullable = false)
-  private boolean acknowledgmentRequired;
+  @Column(name = "corrective_action_text", length = 2000)
+  private String correctiveActionText;
+
+  @Column(name = "required_evidence_text", length = 2000)
+  private String requiredEvidenceText;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "linked_checklist_template_id")
+  private ChecklistTemplate linkedChecklistTemplate;
 
   @Column(nullable = false)
   private boolean active = true;
+
+  @Column(name = "review_interval_days")
+  private Integer reviewIntervalDays;
+
+  @Column(name = "last_reviewed_at")
+  private LocalDateTime lastReviewedAt;
+
+  @Column(name = "version_number", nullable = false)
+  private int versionNumber = 1;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "created_by")
+  private AppUser createdBy;
 
   @CreationTimestamp
   @Column(name = "created_at", updatable = false)
