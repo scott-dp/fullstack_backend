@@ -11,17 +11,24 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/**
+ * Application user entity with Spring Security integration.
+ * Each user belongs to an organization (tenant) and has one or more roles.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,11 +46,52 @@ public class AppUser implements UserDetails {
   @Column(nullable = false)
   private String password;
 
+  @Column(name = "first_name")
+  private String firstName;
+
+  @Column(name = "last_name")
+  private String lastName;
+
+  @Column(unique = true)
+  private String email;
+
+  @Column(name = "email_verified", nullable = false)
+  private boolean emailVerified;
+
+  @Column(name = "email_verification_token", unique = true, length = 120)
+  private String emailVerificationToken;
+
+  @Column(name = "email_verification_expires_at")
+  private LocalDateTime emailVerificationExpiresAt;
+
+  @Column(name = "email_login_code", length = 6)
+  private String emailLoginCode;
+
+  @Column(name = "email_login_code_expires_at")
+  private LocalDateTime emailLoginCodeExpiresAt;
+
+  @Column(name = "account_setup_token", unique = true, length = 120)
+  private String accountSetupToken;
+
+  @Column(name = "account_setup_expires_at")
+  private LocalDateTime accountSetupExpiresAt;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "organization_id")
+  private Organization organization;
+
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "app_user_roles", joinColumns = @JoinColumn(name = "user_id"))
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
   private Set<Role> roles = new HashSet<>();
+
+  @CreationTimestamp
+  @Column(name = "created_at", updatable = false)
+  private LocalDateTime createdAt;
+
+  @Column(nullable = false)
+  private boolean enabled = true;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -67,6 +115,6 @@ public class AppUser implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return enabled;
   }
 }
