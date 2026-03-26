@@ -272,6 +272,7 @@ public class AlcoholIncidentService {
         incident.getId(),
         incident.getOccurredAt(),
         incident.getReportedBy().getUsername(),
+        incident.getAssignedTo() != null ? incident.getAssignedTo().getId() : null,
         incident.getAssignedTo() != null ? incident.getAssignedTo().getUsername() : null,
         incident.getShiftLabel(),
         incident.getLocationArea(),

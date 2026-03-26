@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
  * @param id                       unique incident identifier
  * @param occurredAt               when the incident occurred
  * @param reportedByUsername       username of the reporter
+ * @param assignedToId             identifier of the assignee, or {@code null}
  * @param assignedToUsername       username of the assignee, or {@code null}
  * @param shiftLabel               shift label
  * @param locationArea             area within the venue
@@ -35,6 +36,9 @@ public record AlcoholIncidentResponse(
 
     @Schema(description = "Username of the user who reported the incident.", example = "staff")
     String reportedByUsername,
+
+    @Schema(description = "ID of the user the incident is assigned to.", example = "2")
+    Long assignedToId,
 
     @Schema(description = "Username of the user the incident is assigned to.", example = "manager")
     String assignedToUsername,

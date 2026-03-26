@@ -100,6 +100,7 @@ class AlcoholIncidentServiceTest {
     assertEquals("OPEN", response.status());
     assertEquals("reporter", response.reportedByUsername());
     assertEquals("Bar Area", response.locationArea());
+    assertNull(response.assignedToId());
     assertNull(response.assignedToUsername());
     assertNull(response.closedByUsername());
   }
