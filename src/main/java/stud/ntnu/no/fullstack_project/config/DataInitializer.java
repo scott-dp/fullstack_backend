@@ -101,7 +101,6 @@ public class DataInitializer implements CommandLineRunner {
     seedAllergens();
     seedSuppliers(org);
     seedAllergenData(org);
-
     log.info("Seed data initialized: 1 organization, 3 users, 14 allergens, "
         + "3 ingredients, 3 dishes");
   }
