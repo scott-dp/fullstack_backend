@@ -12,24 +12,30 @@ import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.Dish;
 import stud.ntnu.no.fullstack_project.entity.DishIngredient;
 import stud.ntnu.no.fullstack_project.entity.Ingredient;
+import stud.ntnu.no.fullstack_project.entity.ModuleType;
 import stud.ntnu.no.fullstack_project.entity.Organization;
 import stud.ntnu.no.fullstack_project.entity.OrganizationType;
+import stud.ntnu.no.fullstack_project.entity.ResponsibleRole;
 import stud.ntnu.no.fullstack_project.entity.Role;
-import stud.ntnu.no.fullstack_project.repository.AllergenRepository;
 import stud.ntnu.no.fullstack_project.entity.Supplier;
+import stud.ntnu.no.fullstack_project.entity.TrainingCategory;
+import stud.ntnu.no.fullstack_project.entity.TrainingTemplate;
+import stud.ntnu.no.fullstack_project.repository.AllergenRepository;
 import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
 import stud.ntnu.no.fullstack_project.repository.DishIngredientRepository;
 import stud.ntnu.no.fullstack_project.repository.DishRepository;
 import stud.ntnu.no.fullstack_project.repository.IngredientRepository;
 import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
 import stud.ntnu.no.fullstack_project.repository.SupplierRepository;
+import stud.ntnu.no.fullstack_project.repository.TrainingTemplateRepository;
 
 /**
  * Seeds the database with a default organization and sample users on first run.
  *
  * <p>Only executes when the user table is empty, ensuring idempotent behaviour.
  * Creates one organization, three users (admin, manager, staff), the 14 EU
- * allergens, sample ingredients, and sample dishes for development and testing.</p>
+ * allergens, sample ingredients and dishes, sample suppliers, and default
+ * training templates for development and testing.</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -43,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
   private final DishRepository dishRepository;
   private final DishIngredientRepository dishIngredientRepository;
   private final SupplierRepository supplierRepository;
+  private final TrainingTemplateRepository trainingTemplateRepository;
   private final PasswordEncoder passwordEncoder;
 
   /**
@@ -98,15 +105,21 @@ public class DataInitializer implements CommandLineRunner {
     staff.setOrganization(org);
     staff.setRoles(Set.of(Role.ROLE_STAFF));
     userRepository.save(staff);
+
     seedAllergens();
     seedSuppliers(org);
     seedAllergenData(org);
+    seedTrainingTemplates(org);
+
     log.info("Seed data initialized: 1 organization, 3 users, 14 allergens, "
-        + "3 ingredients, 3 dishes");
+        + "3 ingredients, 3 dishes, suppliers, training templates");
   }
 
   private void seedAllergens() {
-    if (allergenRepository.count() > 0) return;
+    if (allergenRepository.count() > 0) {
+      return;
+    }
+
     String[][] data = {
         {"GLUTEN", "Gluten", "Gluten"},
         {"CRUSTACEANS", "Krepsdyr", "Crustaceans"},
@@ -123,13 +136,15 @@ public class DataInitializer implements CommandLineRunner {
         {"LUPIN", "Lupin", "Lupin"},
         {"MOLLUSCS", "Bløtdyr", "Molluscs"},
     };
+
     for (String[] row : data) {
-      Allergen a = new Allergen();
-      a.setCode(row[0]);
-      a.setNameNo(row[1]);
-      a.setNameEn(row[2]);
-      allergenRepository.save(a);
+      Allergen allergen = new Allergen();
+      allergen.setCode(row[0]);
+      allergen.setNameNo(row[1]);
+      allergen.setNameEn(row[2]);
+      allergenRepository.save(allergen);
     }
+
     log.info("Seeded 14 EU allergens");
   }
 
@@ -148,7 +163,6 @@ public class DataInitializer implements CommandLineRunner {
     Allergen peanuts = allergenRepository.findByCode("PEANUTS").orElseThrow();
     Allergen fish = allergenRepository.findByCode("FISH").orElseThrow();
 
-    // Seed ingredients
     Ingredient parmesan = new Ingredient();
     parmesan.setOrganization(org);
     parmesan.setName("Parmesan");
@@ -175,7 +189,6 @@ public class DataInitializer implements CommandLineRunner {
 
     log.info("Seeded 4 example ingredients");
 
-    // Seed dishes
     Dish caesarSalad = new Dish();
     caesarSalad.setOrganization(org);
     caesarSalad.setName("Caesar Salad");
@@ -203,34 +216,103 @@ public class DataInitializer implements CommandLineRunner {
   }
 
   private void addDishIngredient(Dish dish, Ingredient ingredient, String quantityText) {
-    DishIngredient di = new DishIngredient();
-    di.setDish(dish);
-    di.setIngredient(ingredient);
-    di.setQuantityText(quantityText);
-    dishIngredientRepository.save(di);
+    DishIngredient dishIngredient = new DishIngredient();
+    dishIngredient.setDish(dish);
+    dishIngredient.setIngredient(ingredient);
+    dishIngredient.setQuantityText(quantityText);
+    dishIngredientRepository.save(dishIngredient);
   }
 
   private void seedSuppliers(Organization org) {
-    Supplier s1 = new Supplier();
-    s1.setOrganization(org);
-    s1.setName("Norsk Sjømat AS");
-    s1.setOrganizationNumber("912345678");
-    s1.setContactName("Erik Hansen");
-    s1.setEmail("ordre@norsksjoemat.no");
-    s1.setPhone("+47 22 33 44 55");
-    s1.setAddress("Aker Brygge 12, 0250 Oslo");
-    s1.setNotes("Main seafood supplier. Delivers Mon/Wed/Fri.");
-    supplierRepository.save(s1);
+    if (supplierRepository.count() > 0) {
+      return;
+    }
 
-    Supplier s2 = new Supplier();
-    s2.setOrganization(org);
-    s2.setName("Oslo Drikke AS");
-    s2.setOrganizationNumber("987654321");
-    s2.setContactName("Maria Olsen");
-    s2.setEmail("salg@oslodrikke.no");
-    s2.setPhone("+47 55 66 77 88");
-    s2.setAddress("Grünerløkka 5, 0555 Oslo");
-    s2.setNotes("Beverage supplier for soft drinks and alcohol.");
-    supplierRepository.save(s2);
+    Supplier seafoodSupplier = new Supplier();
+    seafoodSupplier.setOrganization(org);
+    seafoodSupplier.setName("Norsk Sjømat AS");
+    seafoodSupplier.setOrganizationNumber("912345678");
+    seafoodSupplier.setContactName("Erik Hansen");
+    seafoodSupplier.setEmail("ordre@norsksjoemat.no");
+    seafoodSupplier.setPhone("+47 22 33 44 55");
+    seafoodSupplier.setAddress("Aker Brygge 12, 0250 Oslo");
+    seafoodSupplier.setNotes("Main seafood supplier. Delivers Mon/Wed/Fri.");
+    supplierRepository.save(seafoodSupplier);
+
+    Supplier beverageSupplier = new Supplier();
+    beverageSupplier.setOrganization(org);
+    beverageSupplier.setName("Oslo Drikke AS");
+    beverageSupplier.setOrganizationNumber("987654321");
+    beverageSupplier.setContactName("Maria Olsen");
+    beverageSupplier.setEmail("salg@oslodrikke.no");
+    beverageSupplier.setPhone("+47 55 66 77 88");
+    beverageSupplier.setAddress("Grünerløkka 5, 0555 Oslo");
+    beverageSupplier.setNotes("Beverage supplier for soft drinks and alcohol.");
+    supplierRepository.save(beverageSupplier);
+
+    log.info("Seeded 2 suppliers");
+  }
+
+  /**
+   * Seeds default training templates for the given organization.
+   *
+   * @param org the organization to create training templates for
+   */
+  private void seedTrainingTemplates(Organization org) {
+    if (trainingTemplateRepository.count() > 0) {
+      return;
+    }
+
+    TrainingTemplate foodHygiene = new TrainingTemplate();
+    foodHygiene.setOrganization(org);
+    foodHygiene.setTitle("Basic food hygiene");
+    foodHygiene.setModuleType(ModuleType.IK_MAT);
+    foodHygiene.setCategory(TrainingCategory.FOOD_HYGIENE);
+    foodHygiene.setDescription("Covers basic food hygiene principles and safe food handling.");
+    foodHygiene.setRequiredForRole(ResponsibleRole.ALL);
+    foodHygiene.setMandatory(true);
+    foodHygiene.setValidityDays(365);
+    foodHygiene.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(foodHygiene);
+
+    TrainingTemplate allergen = new TrainingTemplate();
+    allergen.setOrganization(org);
+    allergen.setTitle("Allergen awareness");
+    allergen.setModuleType(ModuleType.IK_MAT);
+    allergen.setCategory(TrainingCategory.ALLERGENS);
+    allergen.setDescription(
+        "Training on allergen identification, labelling, and cross-contamination prevention.");
+    allergen.setRequiredForRole(ResponsibleRole.ALL);
+    allergen.setMandatory(true);
+    allergen.setValidityDays(365);
+    allergen.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(allergen);
+
+    TrainingTemplate ageControl = new TrainingTemplate();
+    ageControl.setOrganization(org);
+    ageControl.setTitle("Age verification and ID check");
+    ageControl.setModuleType(ModuleType.IK_ALKOHOL);
+    ageControl.setCategory(TrainingCategory.AGE_CONTROL);
+    ageControl.setDescription("Procedures for verifying customer age and handling ID checks.");
+    ageControl.setRequiredForRole(ResponsibleRole.ALL);
+    ageControl.setMandatory(true);
+    ageControl.setValidityDays(180);
+    ageControl.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(ageControl);
+
+    TrainingTemplate intoxication = new TrainingTemplate();
+    intoxication.setOrganization(org);
+    intoxication.setTitle("Refusing service to intoxicated guests");
+    intoxication.setModuleType(ModuleType.IK_ALKOHOL);
+    intoxication.setCategory(TrainingCategory.INTOXICATION_HANDLING);
+    intoxication.setDescription(
+        "Guidelines for identifying intoxicated guests and refusing service responsibly.");
+    intoxication.setRequiredForRole(ResponsibleRole.ALL);
+    intoxication.setMandatory(true);
+    intoxication.setValidityDays(180);
+    intoxication.setAcknowledgmentRequired(true);
+    trainingTemplateRepository.save(intoxication);
+
+    log.info("Seeded 4 training templates");
   }
 }
