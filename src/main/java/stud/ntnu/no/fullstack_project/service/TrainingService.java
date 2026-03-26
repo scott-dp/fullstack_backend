@@ -1,6 +1,7 @@
 package stud.ntnu.no.fullstack_project.service;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import stud.ntnu.no.fullstack_project.dto.training.TrainingTemplateResponse;
 import stud.ntnu.no.fullstack_project.dto.training.UpdateTrainingTemplateRequest;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
 import stud.ntnu.no.fullstack_project.entity.ModuleType;
+import stud.ntnu.no.fullstack_project.entity.NotificationType;
 import stud.ntnu.no.fullstack_project.entity.ResponsibleRole;
 import stud.ntnu.no.fullstack_project.entity.TrainingAssignment;
 import stud.ntnu.no.fullstack_project.entity.TrainingAssignmentStatus;
@@ -44,6 +46,7 @@ public class TrainingService {
   private final TrainingAssignmentRepository trainingAssignmentRepository;
   private final TrainingCompletionRepository trainingCompletionRepository;
   private final AppUserRepository appUserRepository;
+  private final NotificationService notificationService;
 
   /**
    * Creates a new training template and persists it.
@@ -210,7 +213,7 @@ public class TrainingService {
 
     LocalDateTime dueAt = null;
     if (request.dueAt() != null && !request.dueAt().isBlank()) {
-      dueAt = LocalDateTime.parse(request.dueAt());
+      dueAt = parseDueAt(request.dueAt());
     }
 
     List<TrainingAssignmentResponse> responses = new ArrayList<>();
@@ -228,6 +231,14 @@ public class TrainingService {
       assignment.setDueAt(dueAt);
 
       TrainingAssignment saved = trainingAssignmentRepository.save(assignment);
+      notificationService.createNotification(
+          assignee,
+          "Training Assigned",
+          String.format("You have been assigned training: %s", template.getTitle()),
+          NotificationType.TRAINING_ASSIGNED,
+          saved.getId(),
+          "TRAINING_ASSIGNMENT"
+      );
       log.info("Training assigned: templateId={}, userId={}, assignmentId={}",
           templateId, userId, saved.getId());
       responses.add(mapToAssignmentResponse(saved));
@@ -389,5 +400,13 @@ public class TrainingService {
         completion.getComments(),
         completion.getExpiresAt()
     );
+  }
+
+  private LocalDateTime parseDueAt(String dueAt) {
+    try {
+      return LocalDateTime.parse(dueAt);
+    } catch (RuntimeException ignored) {
+      return LocalDate.parse(dueAt).atStartOfDay();
+    }
   }
 }

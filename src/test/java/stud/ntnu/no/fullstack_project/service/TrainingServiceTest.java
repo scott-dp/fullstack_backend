@@ -35,6 +35,9 @@ class TrainingServiceTest {
   @Mock
   private AppUserRepository appUserRepository;
 
+  @Mock
+  private NotificationService notificationService;
+
   @InjectMocks
   private TrainingService trainingService;
 
@@ -233,6 +236,13 @@ class TrainingServiceTest {
     assertEquals("manager", responses.get(0).assignedByUsername());
     assertEquals("ASSIGNED", responses.get(0).status());
     verify(trainingAssignmentRepository).save(any(TrainingAssignment.class));
+    verify(notificationService).createNotification(
+        eq(staffUser),
+        eq("Training Assigned"),
+        eq("You have been assigned training: Food Hygiene"),
+        eq(NotificationType.TRAINING_ASSIGNED),
+        eq(100L),
+        eq("TRAINING_ASSIGNMENT"));
   }
 
   @Test
