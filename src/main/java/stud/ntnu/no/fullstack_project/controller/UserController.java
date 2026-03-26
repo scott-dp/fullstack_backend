@@ -144,10 +144,10 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
   @Operation(
-      summary = "Delete a staff or manager user",
-      description = "Soft-deletes a non-admin user account so it no longer appears in user management or can log in."
+      summary = "Archive a managed user account",
+      description = "Allows org admins to disable staff/managers in their own organization and superadmins to archive org admins."
   )
   public ResponseEntity<Void> deleteUser(
       @PathVariable Long id,

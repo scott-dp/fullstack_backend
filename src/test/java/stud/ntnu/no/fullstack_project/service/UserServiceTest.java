@@ -274,6 +274,7 @@ class UserServiceTest {
     adminUser.setId(9L);
     adminUser.setUsername("admin");
     adminUser.setRoles(new HashSet<>(Set.of(Role.ROLE_ADMIN)));
+    adminUser.setOrganization(testOrg);
 
     when(appUserRepository.findById(1L)).thenReturn(Optional.of(testUser));
     when(appUserRepository.save(any(AppUser.class))).thenAnswer(i -> i.getArgument(0));

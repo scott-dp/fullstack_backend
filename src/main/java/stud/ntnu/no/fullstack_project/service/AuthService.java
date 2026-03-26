@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.no.fullstack_project.config.JwtService;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.AdminSetupInfoResponse;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthStatusResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.CompleteAdminSetupRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
@@ -116,6 +118,9 @@ public class AuthService {
     AppUser account = appUserRepository.findByUsernameOrEmail(request.identifier(), normalizeEmail(request.identifier()))
         .orElseThrow(() -> new BadCredentialsException("Invalid username, email, or password"));
 
+    if (!account.isEnabled() && account.getAccountSetupToken() != null) {
+      throw new IllegalArgumentException("Complete your account setup from the email invitation before logging in");
+    }
     if (!account.isEmailVerified()) {
       throw new IllegalArgumentException("Verify your email before logging in");
     }
@@ -146,6 +151,9 @@ public class AuthService {
     AppUser user = appUserRepository.findByEmail(normalizeEmail(request.email()))
         .orElseThrow(() -> new IllegalArgumentException("No user found for that email"));
 
+    if (!user.isEnabled() && user.getAccountSetupToken() != null) {
+      throw new IllegalArgumentException("Complete your account setup before requesting a login code");
+    }
     if (!user.isEmailVerified()) {
       throw new IllegalArgumentException("Verify your email before requesting a login code");
     }
@@ -174,6 +182,9 @@ public class AuthService {
     AppUser user = appUserRepository.findByEmail(normalizeEmail(request.email()))
         .orElseThrow(() -> new BadCredentialsException("Invalid email or login code"));
 
+    if (!user.isEnabled() && user.getAccountSetupToken() != null) {
+      throw new IllegalArgumentException("Complete your account setup before logging in");
+    }
     if (!user.isEmailVerified()) {
       throw new IllegalArgumentException("Verify your email before logging in");
     }
@@ -227,6 +238,31 @@ public class AuthService {
     appUserRepository.save(user);
     log.info("Email verified for user username={} email={}", user.getUsername(), user.getEmail());
     return new VerificationResponse("Email verified successfully. You can now log in.");
+  }
+
+  public AdminSetupInfoResponse getAdminSetupInfo(String token) {
+    AppUser user = findPendingAdminSetup(token);
+    return new AdminSetupInfoResponse(
+        user.getEmail(),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getOrganization() != null ? user.getOrganization().getName() : null
+    );
+  }
+
+  @Transactional
+  public MessageResponse completeAdminSetup(CompleteAdminSetupRequest request) {
+    AppUser user = findPendingAdminSetup(request.token());
+    user.setPassword(passwordEncoder.encode(request.password()));
+    user.setEnabled(true);
+    user.setEmailVerified(true);
+    user.setAccountSetupToken(null);
+    user.setAccountSetupExpiresAt(null);
+    user.setEmailVerificationToken(null);
+    user.setEmailVerificationExpiresAt(null);
+    appUserRepository.save(user);
+    log.info("Completed invited admin account setup for username={}", user.getUsername());
+    return new MessageResponse("Account setup complete. You can now log in.");
   }
 
   /**
@@ -291,6 +327,27 @@ public class AuthService {
 
   private String buildVerificationLink(String token) {
     return frontendUrl + "/verify-email?token=" + token;
+  }
+
+  private AppUser findPendingAdminSetup(String token) {
+    if (token == null || token.isBlank()) {
+      throw new IllegalArgumentException("Setup token is required");
+    }
+
+    AppUser user = appUserRepository.findByAccountSetupToken(token.trim())
+        .orElseThrow(() -> new IllegalArgumentException("Setup token was not found"));
+
+    if (user.getAccountSetupExpiresAt() == null || user.getAccountSetupExpiresAt().isBefore(LocalDateTime.now())) {
+      throw new IllegalArgumentException("Setup token has expired");
+    }
+    if (user.isEnabled() || user.getAccountSetupToken() == null) {
+      throw new IllegalArgumentException("Account setup has already been completed");
+    }
+    if (!user.getRoles().contains(Role.ROLE_ADMIN)) {
+      throw new IllegalArgumentException("Setup token is not valid for an admin account");
+    }
+
+    return user;
   }
 
   private String generateEmailLoginCode() {

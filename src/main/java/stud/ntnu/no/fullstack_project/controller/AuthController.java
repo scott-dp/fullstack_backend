@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.AdminSetupInfoResponse;
 import stud.ntnu.no.fullstack_project.dto.auth.AuthStatusResponse;
+import stud.ntnu.no.fullstack_project.dto.auth.CompleteAdminSetupRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
@@ -166,6 +168,30 @@ public class AuthController {
   ) {
     log.info("Email verification requested");
     return ResponseEntity.ok(authService.verifyEmail(token));
+  }
+
+  @GetMapping("/admin-setup")
+  @Operation(
+      summary = "Inspect a pending admin setup token",
+      description = "Returns the basic account details for a valid one-time organization admin setup token."
+  )
+  public ResponseEntity<AdminSetupInfoResponse> getAdminSetupInfo(
+      @org.springframework.web.bind.annotation.RequestParam String token
+  ) {
+    log.info("Admin setup info requested");
+    return ResponseEntity.ok(authService.getAdminSetupInfo(token));
+  }
+
+  @PostMapping("/admin-setup")
+  @Operation(
+      summary = "Complete invited admin account setup",
+      description = "Sets the password for an invited organization admin and activates the account."
+  )
+  public ResponseEntity<MessageResponse> completeAdminSetup(
+      @Valid @RequestBody CompleteAdminSetupRequest request
+  ) {
+    log.info("Admin setup completion requested");
+    return ResponseEntity.ok(authService.completeAdminSetup(request));
   }
 
   @PostMapping("/logout")

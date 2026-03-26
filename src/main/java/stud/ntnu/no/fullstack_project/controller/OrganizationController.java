@@ -29,7 +29,7 @@ import stud.ntnu.no.fullstack_project.service.OrganizationService;
  * REST controller for organization management.
  *
  * <p>Provides CRUD operations for organizations. Creation and listing of all
- * organizations require ADMIN role; updates require ADMIN or MANAGER.</p>
+ * organizations require SUPERADMIN role; updates require ADMIN or MANAGER.</p>
  */
 @RestController
 @RequestMapping("/api/organizations")
@@ -41,10 +41,10 @@ public class OrganizationController {
   private final OrganizationService organizationService;
 
   @PostMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('SUPERADMIN')")
   @Operation(
       summary = "Create a new organization",
-      description = "Creates a new organization record. Requires ADMIN role."
+      description = "Creates a new organization record. Requires SUPERADMIN role."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Organization created successfully",
@@ -75,10 +75,10 @@ public class OrganizationController {
   }
 
   @GetMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('SUPERADMIN')")
   @Operation(
       summary = "List all organizations",
-      description = "Returns all registered organizations. Requires ADMIN role."
+      description = "Returns all registered organizations. Requires SUPERADMIN role."
   )
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Organizations retrieved successfully"),

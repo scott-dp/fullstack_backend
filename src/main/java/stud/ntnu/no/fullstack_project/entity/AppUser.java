@@ -70,6 +70,12 @@ public class AppUser implements UserDetails {
   @Column(name = "email_login_code_expires_at")
   private LocalDateTime emailLoginCodeExpiresAt;
 
+  @Column(name = "account_setup_token", unique = true, length = 120)
+  private String accountSetupToken;
+
+  @Column(name = "account_setup_expires_at")
+  private LocalDateTime accountSetupExpiresAt;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "organization_id")
   private Organization organization;

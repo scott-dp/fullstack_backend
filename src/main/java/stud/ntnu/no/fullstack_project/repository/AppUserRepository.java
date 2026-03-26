@@ -3,7 +3,10 @@ package stud.ntnu.no.fullstack_project.repository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import stud.ntnu.no.fullstack_project.entity.AppUser;
+import stud.ntnu.no.fullstack_project.entity.Role;
 
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
@@ -22,4 +25,11 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
   boolean existsByEmail(String email);
 
   Optional<AppUser> findByEmailVerificationToken(String token);
+
+  Optional<AppUser> findByAccountSetupToken(String token);
+
+  boolean existsByRolesContaining(Role role);
+
+  @Query("select distinct u from AppUser u join u.roles r where r = :role order by u.createdAt desc")
+  List<AppUser> findAllByRole(@Param("role") Role role);
 }
