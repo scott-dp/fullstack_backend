@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for alcohol license retrieval, persistence, and condition updates.
+ */
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;

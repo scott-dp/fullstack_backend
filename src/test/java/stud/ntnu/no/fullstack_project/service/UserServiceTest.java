@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for admin-led user creation, updates, and soft-deletion rules.
+ */
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;

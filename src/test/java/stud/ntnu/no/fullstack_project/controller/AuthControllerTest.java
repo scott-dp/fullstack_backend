@@ -3,6 +3,10 @@ package stud.ntnu.no.fullstack_project.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Web-layer tests for authentication endpoints and their HTTP contracts.
+ */
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;

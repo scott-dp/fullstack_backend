@@ -3,6 +3,10 @@ package stud.ntnu.no.fullstack_project.config;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.jsonwebtoken.Jwts;
+
+/**
+ * Unit tests for JWT creation, validation, and claim extraction.
+ */
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;

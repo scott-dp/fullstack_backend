@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+  <!-- Logback configuration for local console output and rolling backend log files. -->
   <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="logs"/>
   <springProperty scope="context" name="LOG_FILE" source="logging.file.name" defaultValue="backend.log"/>
   <property name="LOG_PATTERN"
