@@ -170,11 +170,17 @@ public class OrganizationInviteService {
 
   private Organization resolveTargetOrganization(Long organizationId, AppUser currentUser) {
     if (currentUser.getRoles().contains(Role.ROLE_ADMIN)) {
-      if (organizationId == null) {
-        throw new IllegalArgumentException("organizationId is required for admin-created invites");
+      if (currentUser.getOrganization() == null) {
+        throw new IllegalArgumentException("Admin must belong to an organization to create invites");
       }
-      return organizationRepository.findById(organizationId)
-          .orElseThrow(() -> new IllegalArgumentException("Organization not found with id: " + organizationId));
+      Long adminOrganizationId = currentUser.getOrganization().getId();
+      if (organizationId != null && !organizationId.equals(adminOrganizationId)) {
+        throw new IllegalArgumentException("Admins can only invite users to their own organization");
+      }
+      return organizationRepository.findById(adminOrganizationId)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Organization not found with id: " + adminOrganizationId
+          ));
     }
 
     if (!currentUser.getRoles().contains(Role.ROLE_MANAGER)) {
