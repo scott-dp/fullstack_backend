@@ -14,9 +14,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.organization.CreateOrganizationRequest;
 import stud.ntnu.no.fullstack_project.dto.organization.OrganizationResponse;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.OrganizationType;
-import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.organization.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.service.organization.OrganizationService;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationServiceTest {

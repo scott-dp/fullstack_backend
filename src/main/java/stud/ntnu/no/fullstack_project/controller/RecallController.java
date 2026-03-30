@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stud.ntnu.no.fullstack_project.dto.recall.CreateRecallRequest;
 import stud.ntnu.no.fullstack_project.dto.recall.RecallCaseResponse;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
 import stud.ntnu.no.fullstack_project.exception.ApiError;
-import stud.ntnu.no.fullstack_project.service.RecallService;
+import stud.ntnu.no.fullstack_project.service.operations.RecallService;
 
 /**
  * REST controller for recall case management.

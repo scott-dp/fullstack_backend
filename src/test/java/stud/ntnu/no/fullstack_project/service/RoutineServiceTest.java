@@ -14,10 +14,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.routine.*;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.ChecklistTemplateRepository;
-import stud.ntnu.no.fullstack_project.repository.RoutineRepository;
-import stud.ntnu.no.fullstack_project.repository.RoutineReviewRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.auth.ResponsibleRole;
+import stud.ntnu.no.fullstack_project.entity.operations.*;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.operations.ChecklistTemplateRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.RoutineRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.RoutineReviewRepository;
+import stud.ntnu.no.fullstack_project.service.operations.RoutineService;
 
 @ExtendWith(MockitoExtension.class)
 class RoutineServiceTest {
