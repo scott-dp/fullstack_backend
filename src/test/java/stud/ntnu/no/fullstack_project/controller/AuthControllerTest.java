@@ -20,7 +20,7 @@ import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.RegisterRequest;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;

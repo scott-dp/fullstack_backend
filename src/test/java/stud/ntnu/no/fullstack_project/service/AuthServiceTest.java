@@ -25,10 +25,13 @@ import stud.ntnu.no.fullstack_project.config.JwtService;
 import stud.ntnu.no.fullstack_project.dto.auth.AdminSetupInfoResponse;
 import stud.ntnu.no.fullstack_project.dto.auth.CompleteAdminSetupRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.MessageResponse;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.Role;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.auth.Role;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.service.admin.UserService;
+import stud.ntnu.no.fullstack_project.service.auth.AuthService;
+import stud.ntnu.no.fullstack_project.service.auth.VerificationEmailService;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {

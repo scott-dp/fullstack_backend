@@ -15,12 +15,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.notification.NotificationResponse;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
-import stud.ntnu.no.fullstack_project.entity.Notification;
-import stud.ntnu.no.fullstack_project.entity.NotificationType;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.OrganizationType;
-import stud.ntnu.no.fullstack_project.repository.NotificationRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.notifications.Notification;
+import stud.ntnu.no.fullstack_project.entity.notifications.NotificationType;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.operations.NotificationRepository;
+import stud.ntnu.no.fullstack_project.service.operations.NotificationService;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {

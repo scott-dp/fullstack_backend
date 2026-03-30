@@ -3,6 +3,7 @@ package stud.ntnu.no.fullstack_project.entity;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import stud.ntnu.no.fullstack_project.entity.auth.Role;
 
 class RoleTest {
 

@@ -14,9 +14,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.incident.*;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.AlcoholIncidentRepository;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.licensing.AlcoholIncident;
+import stud.ntnu.no.fullstack_project.entity.operations.IncidentSeverity;
+import stud.ntnu.no.fullstack_project.entity.operations.IncidentStatus;
+import stud.ntnu.no.fullstack_project.entity.operations.IncidentType;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.operations.AlcoholIncidentRepository;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.service.operations.AlcoholIncidentService;
 
 @ExtendWith(MockitoExtension.class)
 class AlcoholIncidentServiceTest {

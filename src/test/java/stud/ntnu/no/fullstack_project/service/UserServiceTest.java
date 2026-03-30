@@ -20,12 +20,13 @@ import stud.ntnu.no.fullstack_project.dto.user.AdminCreateUserRequest;
 import stud.ntnu.no.fullstack_project.dto.user.CurrentUserResponse;
 import stud.ntnu.no.fullstack_project.dto.user.UpdateUserRequest;
 import stud.ntnu.no.fullstack_project.dto.user.UserSummaryResponse;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.OrganizationType;
-import stud.ntnu.no.fullstack_project.entity.Role;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
-import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.entity.auth.Role;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.organization.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.service.admin.UserService;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {

@@ -14,11 +14,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.training.*;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
-import stud.ntnu.no.fullstack_project.repository.TrainingAssignmentRepository;
-import stud.ntnu.no.fullstack_project.repository.TrainingCompletionRepository;
-import stud.ntnu.no.fullstack_project.repository.TrainingTemplateRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.auth.ResponsibleRole;
+import stud.ntnu.no.fullstack_project.entity.notifications.NotificationType;
+import stud.ntnu.no.fullstack_project.entity.operations.ModuleType;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.entity.training.*;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.training.TrainingAssignmentRepository;
+import stud.ntnu.no.fullstack_project.repository.training.TrainingCompletionRepository;
+import stud.ntnu.no.fullstack_project.repository.training.TrainingTemplateRepository;
+import stud.ntnu.no.fullstack_project.service.operations.NotificationService;
+import stud.ntnu.no.fullstack_project.service.operations.TrainingService;
 
 @ExtendWith(MockitoExtension.class)
 class TrainingServiceTest {
@@ -68,7 +76,7 @@ class TrainingServiceTest {
   // --- Helper methods ---
 
   private TrainingTemplate buildTemplate(Long id, String title, ModuleType moduleType,
-      TrainingCategory category) {
+                                         TrainingCategory category) {
     TrainingTemplate template = new TrainingTemplate();
     template.setId(id);
     template.setOrganization(testOrg);
@@ -86,7 +94,7 @@ class TrainingServiceTest {
   }
 
   private TrainingAssignment buildAssignment(Long id, TrainingTemplate template,
-      AppUser assignee, AppUser assignedBy) {
+                                             AppUser assignee, AppUser assignedBy) {
     TrainingAssignment assignment = new TrainingAssignment();
     assignment.setId(id);
     assignment.setTrainingTemplate(template);

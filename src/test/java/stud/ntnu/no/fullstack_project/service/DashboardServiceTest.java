@@ -13,13 +13,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.dashboard.DashboardResponse;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
-import stud.ntnu.no.fullstack_project.repository.ChecklistCompletionRepository;
-import stud.ntnu.no.fullstack_project.repository.ChecklistTemplateRepository;
-import stud.ntnu.no.fullstack_project.repository.DeviationRepository;
-import stud.ntnu.no.fullstack_project.repository.NotificationRepository;
-import stud.ntnu.no.fullstack_project.repository.TemperatureLogRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.operations.ChecklistTemplate;
+import stud.ntnu.no.fullstack_project.entity.operations.DeviationStatus;
+import stud.ntnu.no.fullstack_project.entity.operations.TemperatureStatus;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.ChecklistCompletionRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.ChecklistTemplateRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.DeviationRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.NotificationRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.TemperatureLogRepository;
+import stud.ntnu.no.fullstack_project.service.operations.DashboardService;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {

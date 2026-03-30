@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,9 +14,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.deviation.*;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
-import stud.ntnu.no.fullstack_project.repository.DeviationRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.notifications.NotificationType;
+import stud.ntnu.no.fullstack_project.entity.operations.*;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.DeviationRepository;
+import stud.ntnu.no.fullstack_project.service.operations.DeviationService;
+import stud.ntnu.no.fullstack_project.service.operations.NotificationService;
 
 @ExtendWith(MockitoExtension.class)
 class DeviationServiceTest {
