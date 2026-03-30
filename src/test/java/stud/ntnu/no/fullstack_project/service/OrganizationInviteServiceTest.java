@@ -66,6 +66,7 @@ class OrganizationInviteServiceTest {
     adminUser.setId(1L);
     adminUser.setUsername("admin");
     adminUser.setRoles(Set.of(Role.ROLE_ADMIN));
+    adminUser.setOrganization(organization);
 
     managerUser = new AppUser();
     managerUser.setId(2L);
@@ -81,7 +82,7 @@ class OrganizationInviteServiceTest {
 
   @Test
   void createInvite_allowsAdminToCreateManagerInvite() {
-    CreateOrganizationInviteRequest request = new CreateOrganizationInviteRequest("ROLE_MANAGER", 10L, 7);
+    CreateOrganizationInviteRequest request = new CreateOrganizationInviteRequest("ROLE_MANAGER", null, 7);
     when(organizationRepository.findById(10L)).thenReturn(Optional.of(organization));
     when(appUserRepository.findById(1L)).thenReturn(Optional.of(adminUser));
     when(organizationInviteRepository.save(any(OrganizationInvite.class))).thenAnswer(invocation -> {
@@ -97,6 +98,19 @@ class OrganizationInviteServiceTest {
     assertEquals("ROLE_MANAGER", response.role());
     assertEquals("Everest Sushi & Fusion", response.organizationName());
     assertFalse(response.accepted());
+  }
+
+  @Test
+  void createInvite_rejectsAdminInviteForDifferentOrganization() {
+    CreateOrganizationInviteRequest request = new CreateOrganizationInviteRequest("ROLE_MANAGER", 11L, 7);
+
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> organizationInviteService.createInvite(request, adminUser)
+    );
+
+    assertEquals("Admins can only invite users to their own organization", exception.getMessage());
+    verify(organizationRepository, never()).findById(any());
   }
 
   @Test
