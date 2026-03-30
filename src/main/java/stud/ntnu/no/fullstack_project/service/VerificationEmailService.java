@@ -51,9 +51,9 @@ public class VerificationEmailService {
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(fromAddress);
     message.setTo(recipientEmail);
-    message.setSubject("Verify your IK System account");
+    message.setSubject("Verify your CheckMate account");
     message.setText("""
-        Welcome to IK System.
+        Welcome to CheckMate.
 
         Verify your email address before logging in by opening this link:
         %s
@@ -87,9 +87,9 @@ public class VerificationEmailService {
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(fromAddress);
     message.setTo(recipientEmail);
-    message.setSubject("Your IK System login code");
+    message.setSubject("Your CheckMate login code");
     message.setText("""
-        Use this one-time code to sign in to IK System:
+        Use this one-time code to sign in to CheckMate:
 
         %s
 
@@ -128,7 +128,7 @@ public class VerificationEmailService {
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(fromAddress);
     message.setTo(recipientEmail);
-    message.setSubject("Set up your IK System admin account");
+    message.setSubject("Set up your CheckMate admin account");
     message.setText("""
         You have been invited as an administrator for %s.
 
