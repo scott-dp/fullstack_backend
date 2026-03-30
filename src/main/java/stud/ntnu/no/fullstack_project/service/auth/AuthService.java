@@ -73,7 +73,6 @@ public class AuthService {
    * Registers a new user and immediately authenticates that user.
    *
    * @param request  incoming credential payload
-   * @param response HTTP response used to write the auth cookie
    * @return authentication response for the newly registered user
    */
   @Transactional
