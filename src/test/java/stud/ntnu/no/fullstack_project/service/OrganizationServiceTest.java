@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for organization creation, retrieval, and deletion rules.
+ */
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

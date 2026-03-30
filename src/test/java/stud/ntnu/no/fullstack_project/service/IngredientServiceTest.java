@@ -3,6 +3,10 @@ package stud.ntnu.no.fullstack_project.service;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+
+/**
+ * Service tests for ingredient persistence and downstream allergen approval invalidation.
+ */
 import static org.mockito.Mockito.when;
 
 import java.util.List;

@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for dishes, derived allergens, overrides, and approval invalidation.
+ */
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
