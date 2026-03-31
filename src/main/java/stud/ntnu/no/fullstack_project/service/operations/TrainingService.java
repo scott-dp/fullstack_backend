@@ -335,6 +335,12 @@ public class TrainingService {
         totalTemplates, totalAssignments, completedCount, overdueCount, completionRate);
   }
 
+  /**
+   * Deletes a training template together with its assignments, completions,
+   * and assignment notifications.
+   *
+   * @param id training template identifier
+   */
   @Transactional
   public void deleteTemplate(Long id) {
     TrainingTemplate template = trainingTemplateRepository.findById(id)
@@ -418,6 +424,15 @@ public class TrainingService {
     );
   }
 
+  /**
+   * Parses an assignment due date from either a full ISO date-time string or a
+   * date-only string.
+   *
+   * <p>Date-only input is normalized to the start of that day.</p>
+   *
+   * @param dueAt raw due date input from the request
+   * @return parsed due timestamp
+   */
   private LocalDateTime parseDueAt(String dueAt) {
     try {
       return LocalDateTime.parse(dueAt);

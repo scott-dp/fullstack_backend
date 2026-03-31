@@ -34,6 +34,15 @@ public class SuperAdminService {
   @Value("${app.frontend-url}")
   private String frontendUrl;
 
+  /**
+   * Creates a new organization together with its first invited admin account.
+   *
+   * <p>The organization is created first, then a disabled admin user is stored
+   * with a one-time setup token and invited by email.</p>
+   *
+   * @param request organization and admin details from the superadmin UI
+   * @return summary of the invited admin account
+   */
   @Transactional
   public OrganizationAdminSummaryResponse createOrganizationWithAdmin(CreateOrganizationAdminRequest request) {
     String normalizedEmail = normalizeEmail(request.email());
@@ -78,12 +87,26 @@ public class SuperAdminService {
     return mapAdminSummary(admin);
   }
 
+  /**
+   * Lists all organization-scoped admin accounts across the platform.
+   *
+   * @return summaries of all organization admins
+   */
   public List<OrganizationAdminSummaryResponse> listOrganizationAdmins() {
     return appUserRepository.findAllByRole(Role.ROLE_ADMIN).stream()
         .map(this::mapAdminSummary)
         .toList();
   }
 
+  /**
+   * Archives an organization admin account from the superadmin area.
+   *
+   * <p>This disables the target account and clears active setup or login-code
+   * state, but does not hard-delete the user record.</p>
+   *
+   * @param userId target admin identifier
+   * @param currentUser authenticated superadmin performing the action
+   */
   @Transactional
   public void archiveOrganizationAdmin(Long userId, AppUser currentUser) {
     AppUser target = appUserRepository.findById(userId)
@@ -109,6 +132,15 @@ public class SuperAdminService {
     log.info("Superadmin archived organization admin id={}", userId);
   }
 
+  /**
+   * Derives a unique username candidate from an email address.
+   *
+   * <p>The local part of the email is sanitized and then suffixed with an
+   * incrementing counter until an unused username is found.</p>
+   *
+   * @param email normalized admin email address
+   * @return unique username for the invited admin
+   */
   private String generateUniqueUsername(String email) {
     String localPart = email.substring(0, email.indexOf('@'));
     String base = localPart.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]", "");
@@ -125,6 +157,12 @@ public class SuperAdminService {
     return candidate;
   }
 
+  /**
+   * Parses the requested organization type string into the matching enum value.
+   *
+   * @param value raw organization type from the request
+   * @return parsed organization type
+   */
   private OrganizationType parseOrganizationType(String value) {
     try {
       return OrganizationType.valueOf(value.trim().toUpperCase(Locale.ROOT));
@@ -133,10 +171,23 @@ public class SuperAdminService {
     }
   }
 
+  /**
+   * Normalizes an email address for uniqueness checks and persistence.
+   *
+   * @param email raw email input
+   * @return trimmed, lowercase email value
+   */
   private String normalizeEmail(String email) {
     return email.trim().toLowerCase(Locale.ROOT);
   }
 
+  /**
+   * Normalizes an optional text field by trimming whitespace and converting
+   * blank values to {@code null}.
+   *
+   * @param value optional raw text value
+   * @return trimmed text or {@code null} if blank or missing
+   */
   private String normalizeOptional(String value) {
     if (value == null) {
       return null;
@@ -145,10 +196,24 @@ public class SuperAdminService {
     return trimmed.isBlank() ? null : trimmed;
   }
 
+  /**
+   * Builds the one-time frontend link used by an invited admin to finish
+   * account setup.
+   *
+   * @param token account setup token
+   * @return absolute frontend setup URL
+   */
   private String buildAdminSetupLink(String token) {
     return frontendUrl + "/admin-setup?token=" + token;
   }
 
+  /**
+   * Maps an admin user entity to the lightweight summary shown in the
+   * superadmin dashboard.
+   *
+   * @param user organization admin account
+   * @return summary response for list and create operations
+   */
   private OrganizationAdminSummaryResponse mapAdminSummary(AppUser user) {
     Organization organization = user.getOrganization();
     return new OrganizationAdminSummaryResponse(

@@ -33,6 +33,17 @@ public class RoutineService {
   private final RoutineReviewRepository routineReviewRepository;
   private final ChecklistTemplateRepository checklistTemplateRepository;
 
+  /**
+   * Creates a new routine for the current user's organization.
+   *
+   * <p>The request's string enum fields are parsed into domain enums, and an
+   * optional linked checklist template is resolved if an identifier is
+   * provided.</p>
+   *
+   * @param request routine details from the create form
+   * @param currentUser authenticated user creating the routine
+   * @return created routine response
+   */
   @Transactional
   public RoutineResponse createRoutine(CreateRoutineRequest request, AppUser currentUser) {
     ModuleType moduleType = parseEnum(ModuleType.class, request.moduleType(), "moduleType");
@@ -69,12 +80,28 @@ public class RoutineService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Retrieves a single routine by identifier.
+   *
+   * @param id routine identifier
+   * @return routine response
+   */
   public RoutineResponse getRoutine(Long id) {
     Routine routine = routineRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Routine not found with id: " + id));
     return mapToResponse(routine);
   }
 
+  /**
+   * Lists routines for an organization with optional module, category, or
+   * active-only filtering.
+   *
+   * @param organizationId organization identifier
+   * @param moduleType optional module filter
+   * @param category optional category filter
+   * @param active optional active-only flag
+   * @return matching routine responses
+   */
   public List<RoutineResponse> listRoutines(Long organizationId, String moduleType,
       String category, Boolean active) {
     List<Routine> routines;
@@ -99,6 +126,15 @@ public class RoutineService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Updates a routine and increments its version when at least one field
+   * changes.
+   *
+   * @param id routine identifier
+   * @param request partial update payload
+   * @param currentUser authenticated user performing the update
+   * @return updated routine response
+   */
   @Transactional
   public RoutineResponse updateRoutine(Long id, UpdateRoutineRequest request,
       AppUser currentUser) {
@@ -179,6 +215,12 @@ public class RoutineService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Archives a routine by marking it inactive.
+   *
+   * @param id routine identifier
+   * @return archived routine response
+   */
   @Transactional
   public RoutineResponse archiveRoutine(Long id) {
     Routine routine = routineRepository.findById(id)
@@ -189,6 +231,12 @@ public class RoutineService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Restores an archived routine by marking it active again.
+   *
+   * @param id routine identifier
+   * @return unarchived routine response
+   */
   @Transactional
   public RoutineResponse unarchiveRoutine(Long id) {
     Routine routine = routineRepository.findById(id)
@@ -199,6 +247,11 @@ public class RoutineService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Permanently deletes a routine and its review history.
+   *
+   * @param id routine identifier
+   */
   @Transactional
   public void deleteRoutine(Long id) {
     Routine routine = routineRepository.findById(id)
@@ -208,6 +261,15 @@ public class RoutineService {
     log.info("Routine deleted: id={}", id);
   }
 
+  /**
+   * Records a review event for a routine and updates the routine's
+   * last-reviewed timestamp.
+   *
+   * @param id routine identifier
+   * @param request review notes payload
+   * @param currentUser authenticated reviewer
+   * @return saved review response
+   */
   @Transactional
   public RoutineReviewResponse reviewRoutine(Long id, ReviewRoutineRequest request,
       AppUser currentUser) {
@@ -233,6 +295,12 @@ public class RoutineService {
     return mapToReviewResponse(saved);
   }
 
+  /**
+   * Returns the recorded review history for a routine, newest first.
+   *
+   * @param routineId routine identifier
+   * @return review history responses
+   */
   public List<RoutineReviewResponse> getRoutineHistory(Long routineId) {
     routineRepository.findById(routineId)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -244,6 +312,13 @@ public class RoutineService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Maps a routine entity to the API response used by routine list and detail
+   * views.
+   *
+   * @param routine routine entity
+   * @return serialized routine response
+   */
   private RoutineResponse mapToResponse(Routine routine) {
     return new RoutineResponse(
         routine.getId(),
@@ -272,6 +347,12 @@ public class RoutineService {
     );
   }
 
+  /**
+   * Maps a routine review entity to its API response DTO.
+   *
+   * @param review routine review entity
+   * @return serialized review response
+   */
   private RoutineReviewResponse mapToReviewResponse(RoutineReview review) {
     return new RoutineReviewResponse(
         review.getId(),
@@ -283,6 +364,16 @@ public class RoutineService {
     );
   }
 
+  /**
+   * Parses a request string into the requested enum type and produces a
+   * field-specific validation message on failure.
+   *
+   * @param enumClass target enum class
+   * @param value raw request value
+   * @param fieldName logical field name used in error messages
+   * @return parsed enum constant
+   * @param <E> enum type
+   */
   private <E extends Enum<E>> E parseEnum(Class<E> enumClass, String value, String fieldName) {
     try {
       return Enum.valueOf(enumClass, value);
