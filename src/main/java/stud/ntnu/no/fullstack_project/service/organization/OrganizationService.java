@@ -5,18 +5,14 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import stud.ntnu.no.fullstack_project.dto.organization.CreateOrganizationRequest;
 import stud.ntnu.no.fullstack_project.dto.organization.OrganizationResponse;
 import stud.ntnu.no.fullstack_project.entity.organization.Organization;
-import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
 import stud.ntnu.no.fullstack_project.repository.organization.OrganizationRepository;
 
 /**
- * Service for managing organizations.
+ * Service for organization read operations used by the superadmin area.
  *
- * <p>Provides business logic for creating, retrieving, listing, and updating
- * organization records.</p>
+ * <p>Currently only listing is exposed through the application API.</p>
  */
 @Slf4j
 @Service
@@ -24,50 +20,6 @@ import stud.ntnu.no.fullstack_project.repository.organization.OrganizationReposi
 public class OrganizationService {
 
   private final OrganizationRepository organizationRepository;
-
-  /**
-   * Creates a new organization after validating uniqueness of the organization number.
-   *
-   * @param request the organization details
-   * @return the created organization response
-   */
-  @Transactional
-  public OrganizationResponse createOrganization(CreateOrganizationRequest request) {
-    if (request.organizationNumber() != null && !request.organizationNumber().isBlank()
-        && organizationRepository.existsByOrganizationNumber(request.organizationNumber())) {
-      throw new IllegalArgumentException("Organization number is already registered");
-    }
-
-    OrganizationType type;
-    try {
-      type = OrganizationType.valueOf(request.type());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Invalid organization type: " + request.type());
-    }
-
-    Organization organization = new Organization();
-    organization.setName(request.name());
-    organization.setOrganizationNumber(request.organizationNumber());
-    organization.setAddress(request.address());
-    organization.setPhone(request.phone());
-    organization.setType(type);
-
-    Organization saved = organizationRepository.save(organization);
-    log.info("Organization created: {} (id={})", saved.getName(), saved.getId());
-    return mapToResponse(saved);
-  }
-
-  /**
-   * Retrieves an organization by its ID.
-   *
-   * @param id the organization identifier
-   * @return the organization response
-   */
-  public OrganizationResponse getOrganization(Long id) {
-    Organization organization = organizationRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Organization not found with id: " + id));
-    return mapToResponse(organization);
-  }
 
   /**
    * Lists all registered organizations.
@@ -78,42 +30,6 @@ public class OrganizationService {
     return organizationRepository.findAll().stream()
         .map(this::mapToResponse)
         .collect(Collectors.toList());
-  }
-
-  /**
-   * Updates an existing organization's details.
-   *
-   * @param id      the organization identifier
-   * @param request the updated organization details
-   * @return the updated organization response
-   */
-  @Transactional
-  public OrganizationResponse updateOrganization(Long id, CreateOrganizationRequest request) {
-    Organization organization = organizationRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Organization not found with id: " + id));
-
-    if (request.organizationNumber() != null && !request.organizationNumber().isBlank()
-        && !request.organizationNumber().equals(organization.getOrganizationNumber())
-        && organizationRepository.existsByOrganizationNumber(request.organizationNumber())) {
-      throw new IllegalArgumentException("Organization number is already registered");
-    }
-
-    OrganizationType type;
-    try {
-      type = OrganizationType.valueOf(request.type());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Invalid organization type: " + request.type());
-    }
-
-    organization.setName(request.name());
-    organization.setOrganizationNumber(request.organizationNumber());
-    organization.setAddress(request.address());
-    organization.setPhone(request.phone());
-    organization.setType(type);
-
-    Organization saved = organizationRepository.save(organization);
-    log.info("Organization updated: {} (id={})", saved.getName(), saved.getId());
-    return mapToResponse(saved);
   }
 
   /**

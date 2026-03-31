@@ -307,6 +307,12 @@ public class BevillingService {
 
   // --- Helper methods ---
 
+  /**
+   * Parses the incoming alcohol-group names into the persisted enum set.
+   *
+   * @param groups requested alcohol group names
+   * @return parsed alcohol group enum values
+   */
   private Set<AlcoholGroup> parseAlcoholGroups(Set<String> groups) {
     Set<AlcoholGroup> result = new HashSet<>();
     for (String g : groups) {
@@ -319,6 +325,13 @@ public class BevillingService {
     return result;
   }
 
+  /**
+   * Maps a bevilling aggregate to the full API response, including associated
+   * conditions and serving-hours rows.
+   *
+   * @param bevilling bevilling entity to convert
+   * @return complete bevilling response
+   */
   private BevillingResponse mapToResponse(Bevilling bevilling) {
     List<ConditionResponse> conditions = conditionRepository
         .findByBevillingIdOrderByIdAsc(bevilling.getId())
@@ -351,7 +364,6 @@ public class BevillingService {
         bevilling.getStyrerName(),
         bevilling.getStedfortrederName(),
         bevilling.getNotes(),
-        bevilling.getAttachmentId(),
         conditions,
         servingHours,
         bevilling.getCreatedAt(),
@@ -359,6 +371,12 @@ public class BevillingService {
     );
   }
 
+  /**
+   * Maps a bevilling condition entity to its API response DTO.
+   *
+   * @param condition persisted bevilling condition
+   * @return serialized condition response
+   */
   private ConditionResponse mapToConditionResponse(BevillingCondition condition) {
     return new ConditionResponse(
         condition.getId(),
@@ -369,6 +387,12 @@ public class BevillingService {
     );
   }
 
+  /**
+   * Maps a serving-hours entity to its API response DTO.
+   *
+   * @param hours persisted serving-hours row
+   * @return serialized serving-hours response
+   */
   private ServingHoursResponse mapToServingHoursResponse(BevillingServingHours hours) {
     return new ServingHoursResponse(
         hours.getId(),

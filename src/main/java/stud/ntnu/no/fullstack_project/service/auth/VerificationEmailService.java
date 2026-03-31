@@ -147,6 +147,14 @@ public class VerificationEmailService {
     }
   }
 
+  /**
+   * Logs the currently active mail configuration for a specific email flow.
+   *
+   * <p>This is used to diagnose local and deployed mail problems without
+   * logging the SMTP password value itself.</p>
+   *
+   * @param flow logical email flow name, such as verification or admin setup
+   */
   private void logMailConfiguration(String flow) {
     boolean passwordPresent = smtpPassword != null && !smtpPassword.isBlank();
     int passwordLength = passwordPresent ? smtpPassword.length() : 0;

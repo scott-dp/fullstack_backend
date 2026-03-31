@@ -146,6 +146,17 @@ public class UserService {
     return mapToResponse(saved);
   }
 
+  /**
+   * Soft-deletes or archives a user account according to the caller's role.
+   *
+   * <p>Superadmins may archive organization admins. Organization admins may
+   * soft-delete non-admin users in their own organization. The method clears
+   * active login/setup state and preserves audit-safe history by avoiding hard
+   * deletion.</p>
+   *
+   * @param userId target user identifier
+   * @param currentUser authenticated user performing the operation
+   */
   @Transactional
   public void deleteUser(Long userId, AppUser currentUser) {
     AppUser target = appUserRepository.findById(userId)
