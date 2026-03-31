@@ -185,8 +185,8 @@ The VM deployment uses Docker Compose for the backend stack. In the production s
 
 The backend exposes API documentation through Springdoc OpenAPI:
 
-- Swagger UI: `/swagger-ui.html`
-- OpenAPI JSON: `/v3/api-docs`
+- Swagger UI: https://idatt2105-20.idi.ntnu.no/swagger-ui/index.html#/
+- OpenAPI JSON: https://idatt2105-20.idi.ntnu.no/v3/api-docs
 
 ## Project Structure
 
@@ -204,6 +204,10 @@ Key backend areas include:
 
 ![img.png](img.png)
 
+![img_1.png](img_1.png)
+Simplified ER diagram of the CheckMate backend data model. Organization is the central
+tenant entity, while users, operational compliance data, food management, training,    
+supplier traceability, and alcohol-license data are all scoped to an organization.
 ## Credentials
 
 The given staff, manager and admin accounts belong to the organization Everest Fusion & Sushi
