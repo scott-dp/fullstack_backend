@@ -141,22 +141,23 @@ macOS/Linux:
 
 Some important backend configuration values are defined through environment variables, including:
 
-- `SPRING_PROFILES_ACTIVE`
-- `SERVER_PORT`
-- `APP_FRONTEND_URL`
-- `JWT_SECRET`
-- `JWT_ACCESS_TOKEN_EXPIRATION`
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-- `MAIL_HOST`
-- `MAIL_PORT`
-- `MAIL_USERNAME`
-- `KRISEFIKSER_EMAIL_PASSWORD`
+- `SPRING_PROFILES_ACTIVE` (doesn't need to be set)
+- `SERVER_PORT` (doesn't need to be set)
+- `APP_FRONTEND_URL` (doesn't need to be set if running dev or test profiles)
+- `JWT_SECRET` (doesn't need to be set)
+- `JWT_ACCESS_TOKEN_EXPIRATION` (doesn't need to be set)
+- `SPRING_DATASOURCE_URL` (doesn't need to be set if running dev or test profiles)
+- `SPRING_DATASOURCE_USERNAME` (doesn't need to be set if running dev or test profiles)
+- `SPRING_DATASOURCE_PASSWORD` (doesn't need to be set if running dev or test profiles)
+- `MAIL_HOST` (doesn't need to be set if using gmail)
+- `MAIL_PORT` (doesn't need to be set)
+- `MAIL_USERNAME` (needs to be set to a gmail you have an app password for)
+- `KRISEFIKSER_EMAIL_PASSWORD` (needs to be set to the app password for the gmail you use)
 
 ## Deployment To The VM
 
-The production backend is deployed to a VM through GitHub Actions CD and a self-hosted runner.
+The production backend is deployed to a VM through GitHub Actions CD and a self-hosted runner. 
+The deployed app can be found at https://idatt2105-20.idi.ntnu.no/
 
 ### Deployment Flow
 
@@ -198,3 +199,27 @@ Key backend areas include:
 - security and JWT handling
 - notification and invitation flows
 - seeding and environment configuration
+
+## System Architecture
+
+![img.png](img.png)
+
+## Credentials
+
+The given staff, manager and admin accounts belong to the organization Everest Fusion & Sushi
+
+Staff user credentials:
+ - Username: staff
+ - Password: staff123
+
+Manager user credentials:
+ - Username: manager
+ - Password: manager123
+
+Admin user credentials:
+ - Username: admin
+ - Password: admin123
+
+The only superadmin account credentials:
+ - Username: superadmin
+ - Password: superadmin123
