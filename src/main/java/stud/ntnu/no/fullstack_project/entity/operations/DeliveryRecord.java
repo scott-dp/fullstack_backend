@@ -57,9 +57,6 @@ public class DeliveryRecord {
   @Column(length = 2000)
   private String notes;
 
-  @Column(name = "attachment_id")
-  private Long attachmentId;
-
   @OneToMany(mappedBy = "deliveryRecord", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DeliveryItem> items = new ArrayList<>();
 

@@ -364,7 +364,6 @@ public class BevillingService {
         bevilling.getStyrerName(),
         bevilling.getStedfortrederName(),
         bevilling.getNotes(),
-        bevilling.getAttachmentId(),
         conditions,
         servingHours,
         bevilling.getCreatedAt(),

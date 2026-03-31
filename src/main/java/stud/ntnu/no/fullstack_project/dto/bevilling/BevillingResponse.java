@@ -53,9 +53,6 @@ public record BevillingResponse(
     @Schema(description = "Additional notes.")
     String notes,
 
-    @Schema(description = "Attachment ID, if any.")
-    Long attachmentId,
-
     @Schema(description = "Conditions attached to this bevilling.")
     List<ConditionResponse> conditions,
 
