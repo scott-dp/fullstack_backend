@@ -3,6 +3,10 @@ package stud.ntnu.no.fullstack_project.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Web-layer tests for authentication endpoints and their HTTP contracts.
+ */
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
@@ -20,7 +24,7 @@ import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeLoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.EmailCodeRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.LoginRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.RegisterRequest;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;

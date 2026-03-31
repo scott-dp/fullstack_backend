@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import stud.ntnu.no.fullstack_project.service.AppUserDetailsService;
+import stud.ntnu.no.fullstack_project.service.auth.AppUserDetailsService;
 
 /**
  * HTTP filter that extracts a JWT from the authentication cookie and populates

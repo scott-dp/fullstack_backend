@@ -3,6 +3,10 @@ package stud.ntnu.no.fullstack_project.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
+/**
+ * Service tests for authentication, verification, and invited-admin setup flows.
+ */
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
@@ -25,10 +29,13 @@ import stud.ntnu.no.fullstack_project.config.JwtService;
 import stud.ntnu.no.fullstack_project.dto.auth.AdminSetupInfoResponse;
 import stud.ntnu.no.fullstack_project.dto.auth.CompleteAdminSetupRequest;
 import stud.ntnu.no.fullstack_project.dto.auth.MessageResponse;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.Role;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.auth.Role;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.service.admin.UserService;
+import stud.ntnu.no.fullstack_project.service.auth.AuthService;
+import stud.ntnu.no.fullstack_project.service.auth.VerificationEmailService;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {

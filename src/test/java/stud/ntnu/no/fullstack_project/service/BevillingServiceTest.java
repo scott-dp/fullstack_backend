@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for alcohol license retrieval, persistence, and condition updates.
+ */
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -17,10 +21,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.bevilling.*;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.BevillingConditionRepository;
-import stud.ntnu.no.fullstack_project.repository.BevillingRepository;
-import stud.ntnu.no.fullstack_project.repository.BevillingServingHoursRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.licensing.*;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.licensing.BevillingConditionRepository;
+import stud.ntnu.no.fullstack_project.repository.licensing.BevillingRepository;
+import stud.ntnu.no.fullstack_project.repository.licensing.BevillingServingHoursRepository;
+import stud.ntnu.no.fullstack_project.service.operations.BevillingService;
 
 @ExtendWith(MockitoExtension.class)
 class BevillingServiceTest {

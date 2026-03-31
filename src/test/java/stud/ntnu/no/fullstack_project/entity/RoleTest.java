@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for role parsing and role helper behavior.
+ */
+import stud.ntnu.no.fullstack_project.entity.auth.Role;
+
 class RoleTest {
 
   @Test

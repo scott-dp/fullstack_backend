@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for routine CRUD, reviews, archiving, and restoration behavior.
+ */
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +18,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.routine.*;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.ChecklistTemplateRepository;
-import stud.ntnu.no.fullstack_project.repository.RoutineRepository;
-import stud.ntnu.no.fullstack_project.repository.RoutineReviewRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.auth.ResponsibleRole;
+import stud.ntnu.no.fullstack_project.entity.operations.*;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.operations.ChecklistTemplateRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.RoutineRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.RoutineReviewRepository;
+import stud.ntnu.no.fullstack_project.service.operations.RoutineService;
 
 @ExtendWith(MockitoExtension.class)
 class RoutineServiceTest {

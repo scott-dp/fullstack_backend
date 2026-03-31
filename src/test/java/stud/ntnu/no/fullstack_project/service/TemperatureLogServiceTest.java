@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for temperature logging and alert classification.
+ */
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -15,8 +19,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.temperature.CreateTemperatureLogRequest;
 import stud.ntnu.no.fullstack_project.dto.temperature.TemperatureLogResponse;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.TemperatureLogRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.notifications.NotificationType;
+import stud.ntnu.no.fullstack_project.entity.operations.TemperatureLog;
+import stud.ntnu.no.fullstack_project.entity.operations.TemperatureStatus;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.operations.TemperatureLogRepository;
+import stud.ntnu.no.fullstack_project.service.operations.NotificationService;
+import stud.ntnu.no.fullstack_project.service.operations.TemperatureLogService;
 
 @ExtendWith(MockitoExtension.class)
 class TemperatureLogServiceTest {
@@ -50,7 +61,7 @@ class TemperatureLogServiceTest {
   // --- Helper methods ---
 
   private TemperatureLog buildLog(Long id, double temp, double min, double max,
-      TemperatureStatus status, String location) {
+                                  TemperatureStatus status, String location) {
     TemperatureLog log = new TemperatureLog();
     log.setId(id);
     log.setOrganization(testOrg);

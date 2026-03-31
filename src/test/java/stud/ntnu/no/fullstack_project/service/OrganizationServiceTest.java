@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for organization creation, retrieval, and deletion rules.
+ */
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +18,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.organization.CreateOrganizationRequest;
 import stud.ntnu.no.fullstack_project.dto.organization.OrganizationResponse;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.OrganizationType;
-import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.organization.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.service.organization.OrganizationService;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationServiceTest {

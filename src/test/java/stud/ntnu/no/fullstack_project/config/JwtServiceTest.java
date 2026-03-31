@@ -3,6 +3,10 @@ package stud.ntnu.no.fullstack_project.config;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.jsonwebtoken.Jwts;
+
+/**
+ * Unit tests for JWT creation, validation, and claim extraction.
+ */
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -12,8 +16,8 @@ import javax.crypto.SecretKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
-import stud.ntnu.no.fullstack_project.entity.Role;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.auth.Role;
 
 class JwtServiceTest {
 

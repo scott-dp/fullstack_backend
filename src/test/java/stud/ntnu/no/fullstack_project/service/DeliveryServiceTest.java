@@ -4,9 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for delivery recording and traceability lookup behavior.
+ */
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,10 +19,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.delivery.*;
-import stud.ntnu.no.fullstack_project.entity.*;
-import stud.ntnu.no.fullstack_project.repository.DeliveryItemRepository;
-import stud.ntnu.no.fullstack_project.repository.DeliveryRecordRepository;
-import stud.ntnu.no.fullstack_project.repository.SupplierRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.operations.DeliveryItem;
+import stud.ntnu.no.fullstack_project.entity.operations.DeliveryRecord;
+import stud.ntnu.no.fullstack_project.entity.operations.Supplier;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.operations.DeliveryItemRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.DeliveryRecordRepository;
+import stud.ntnu.no.fullstack_project.repository.operations.SupplierRepository;
+import stud.ntnu.no.fullstack_project.service.operations.DeliveryService;
 
 @ExtendWith(MockitoExtension.class)
 class DeliveryServiceTest {

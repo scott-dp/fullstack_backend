@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Service tests for dishes, derived allergens, overrides, and approval invalidation.
+ */
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -20,19 +24,20 @@ import stud.ntnu.no.fullstack_project.dto.allergen.CreateDishRequest;
 import stud.ntnu.no.fullstack_project.dto.allergen.DishAllergenOverrideRequest;
 import stud.ntnu.no.fullstack_project.dto.allergen.DishIngredientEntry;
 import stud.ntnu.no.fullstack_project.dto.allergen.DishResponse;
-import stud.ntnu.no.fullstack_project.entity.Allergen;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
-import stud.ntnu.no.fullstack_project.entity.Dish;
-import stud.ntnu.no.fullstack_project.entity.DishAllergenOverride;
-import stud.ntnu.no.fullstack_project.entity.DishIngredient;
-import stud.ntnu.no.fullstack_project.entity.Ingredient;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.OrganizationType;
-import stud.ntnu.no.fullstack_project.repository.AllergenRepository;
-import stud.ntnu.no.fullstack_project.repository.DishAllergenOverrideRepository;
-import stud.ntnu.no.fullstack_project.repository.DishIngredientRepository;
-import stud.ntnu.no.fullstack_project.repository.DishRepository;
-import stud.ntnu.no.fullstack_project.repository.IngredientRepository;
+import stud.ntnu.no.fullstack_project.entity.food.Allergen;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.food.Dish;
+import stud.ntnu.no.fullstack_project.entity.food.DishAllergenOverride;
+import stud.ntnu.no.fullstack_project.entity.food.DishIngredient;
+import stud.ntnu.no.fullstack_project.entity.food.Ingredient;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.repository.food.AllergenRepository;
+import stud.ntnu.no.fullstack_project.repository.food.DishAllergenOverrideRepository;
+import stud.ntnu.no.fullstack_project.repository.food.DishIngredientRepository;
+import stud.ntnu.no.fullstack_project.repository.food.DishRepository;
+import stud.ntnu.no.fullstack_project.repository.food.IngredientRepository;
+import stud.ntnu.no.fullstack_project.service.operations.DishService;
 
 @ExtendWith(MockitoExtension.class)
 class DishServiceTest {

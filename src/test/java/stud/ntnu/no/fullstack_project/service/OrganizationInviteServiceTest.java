@@ -3,6 +3,10 @@ package stud.ntnu.no.fullstack_project.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+/**
+ * Service tests for organization invite creation, acceptance, and org-scoped rules.
+ */
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,14 +27,16 @@ import stud.ntnu.no.fullstack_project.dto.invite.AcceptOrganizationInviteRequest
 import stud.ntnu.no.fullstack_project.dto.invite.CreateOrganizationInviteRequest;
 import stud.ntnu.no.fullstack_project.dto.invite.OrganizationInviteResponse;
 import stud.ntnu.no.fullstack_project.dto.user.CurrentUserResponse;
-import stud.ntnu.no.fullstack_project.entity.AppUser;
-import stud.ntnu.no.fullstack_project.entity.Organization;
-import stud.ntnu.no.fullstack_project.entity.OrganizationInvite;
-import stud.ntnu.no.fullstack_project.entity.OrganizationType;
-import stud.ntnu.no.fullstack_project.entity.Role;
-import stud.ntnu.no.fullstack_project.repository.AppUserRepository;
-import stud.ntnu.no.fullstack_project.repository.OrganizationInviteRepository;
-import stud.ntnu.no.fullstack_project.repository.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.entity.auth.AppUser;
+import stud.ntnu.no.fullstack_project.entity.organization.Organization;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationInvite;
+import stud.ntnu.no.fullstack_project.entity.organization.OrganizationType;
+import stud.ntnu.no.fullstack_project.entity.auth.Role;
+import stud.ntnu.no.fullstack_project.repository.auth.AppUserRepository;
+import stud.ntnu.no.fullstack_project.repository.organization.OrganizationInviteRepository;
+import stud.ntnu.no.fullstack_project.repository.organization.OrganizationRepository;
+import stud.ntnu.no.fullstack_project.service.admin.UserService;
+import stud.ntnu.no.fullstack_project.service.organization.OrganizationInviteService;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationInviteServiceTest {

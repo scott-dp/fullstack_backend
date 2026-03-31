@@ -3,11 +3,15 @@ package stud.ntnu.no.fullstack_project.service;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+
+/**
+ * Service tests for ingredient persistence and downstream allergen approval invalidation.
+ */
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,14 +19,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.no.fullstack_project.dto.allergen.UpdateIngredientRequest;
-import stud.ntnu.no.fullstack_project.entity.Allergen;
-import stud.ntnu.no.fullstack_project.entity.Dish;
-import stud.ntnu.no.fullstack_project.entity.DishIngredient;
-import stud.ntnu.no.fullstack_project.entity.Ingredient;
-import stud.ntnu.no.fullstack_project.repository.AllergenRepository;
-import stud.ntnu.no.fullstack_project.repository.DishIngredientRepository;
-import stud.ntnu.no.fullstack_project.repository.DishRepository;
-import stud.ntnu.no.fullstack_project.repository.IngredientRepository;
+import stud.ntnu.no.fullstack_project.entity.food.Allergen;
+import stud.ntnu.no.fullstack_project.entity.food.Dish;
+import stud.ntnu.no.fullstack_project.entity.food.DishIngredient;
+import stud.ntnu.no.fullstack_project.entity.food.Ingredient;
+import stud.ntnu.no.fullstack_project.repository.food.AllergenRepository;
+import stud.ntnu.no.fullstack_project.repository.food.DishIngredientRepository;
+import stud.ntnu.no.fullstack_project.repository.food.DishRepository;
+import stud.ntnu.no.fullstack_project.repository.food.IngredientRepository;
+import stud.ntnu.no.fullstack_project.service.operations.IngredientService;
 
 @ExtendWith(MockitoExtension.class)
 class IngredientServiceTest {
