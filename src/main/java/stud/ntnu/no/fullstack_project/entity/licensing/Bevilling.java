@@ -86,9 +86,6 @@ public class Bevilling {
   @Column(length = 2000)
   private String notes;
 
-  @Column(name = "attachment_id")
-  private Long attachmentId;
-
   @CreationTimestamp
   @Column(name = "created_at", updatable = false)
   private LocalDateTime createdAt;

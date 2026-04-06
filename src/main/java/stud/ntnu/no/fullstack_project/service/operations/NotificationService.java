@@ -105,6 +105,16 @@ public class NotificationService {
     log.info("All notifications marked as read for user {}", userId);
   }
 
+  /**
+   * Deletes notifications that reference any of the supplied entity IDs for a
+   * given reference type.
+   *
+   * <p>This is used when related records such as training assignments are
+   * removed and their notification entries should no longer remain visible.</p>
+   *
+   * @param referenceType application-level reference type label
+   * @param referenceIds referenced entity identifiers to purge
+   */
   @Transactional
   public void deleteNotificationsForReferences(String referenceType, List<Long> referenceIds) {
     if (referenceIds == null || referenceIds.isEmpty()) {

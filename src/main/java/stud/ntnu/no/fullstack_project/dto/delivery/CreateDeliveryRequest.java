@@ -13,7 +13,6 @@ import java.util.List;
  * @param deliveryDate   date of delivery (ISO format)
  * @param documentNumber optional document / invoice number
  * @param notes          optional notes
- * @param attachmentId   optional attachment identifier
  * @param items          line items in the delivery
  */
 @Schema(description = "Request payload for recording a new delivery.")
@@ -32,9 +31,6 @@ public record CreateDeliveryRequest(
     @Schema(description = "Additional notes about the delivery.")
     @Size(max = 2000)
     String notes,
-
-    @Schema(description = "Attachment identifier for supporting documents.")
-    Long attachmentId,
 
     @Schema(description = "Line items in the delivery.")
     @NotNull

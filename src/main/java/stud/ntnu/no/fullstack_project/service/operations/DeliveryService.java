@@ -56,7 +56,6 @@ public class DeliveryService {
     record.setDocumentNumber(request.documentNumber());
     record.setReceivedBy(currentUser);
     record.setNotes(request.notes());
-    record.setAttachmentId(request.attachmentId());
 
     for (CreateDeliveryItemRequest itemReq : request.items()) {
       DeliveryItem item = new DeliveryItem();
@@ -151,7 +150,6 @@ public class DeliveryService {
         record.getDocumentNumber(),
         record.getReceivedBy().getUsername(),
         record.getNotes(),
-        record.getAttachmentId(),
         itemResponses,
         record.getCreatedAt()
     );

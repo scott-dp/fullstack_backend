@@ -118,6 +118,14 @@ public class IngredientService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Permanently deletes an ingredient and removes its links from dishes.
+   *
+   * <p>Any dishes using the ingredient have their allergen approval invalidated
+   * before the ingredient link rows are removed.</p>
+   *
+   * @param id the ingredient identifier
+   */
   @Transactional
   public void deleteIngredient(Long id) {
     Ingredient ingredient = ingredientRepository.findById(id)
@@ -151,6 +159,12 @@ public class IngredientService {
     );
   }
 
+  /**
+   * Invalidates allergen approval for every dish that uses the specified
+   * ingredient.
+   *
+   * @param ingredientId ingredient identifier used to find affected dishes
+   */
   private void invalidateAffectedDishApprovals(Long ingredientId) {
     List<DishIngredient> links = dishIngredientRepository.findByIngredientId(ingredientId);
     if (links.isEmpty()) {

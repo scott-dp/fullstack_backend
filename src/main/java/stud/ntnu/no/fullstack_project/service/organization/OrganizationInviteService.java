@@ -152,6 +152,12 @@ public class OrganizationInviteService {
     return userService.mapToResponse(persistentUser);
   }
 
+  /**
+   * Parses the requested invitation role into the matching role enum.
+   *
+   * @param role raw invited role from the request
+   * @return parsed role enum
+   */
   private Role parseInviteRole(String role) {
     try {
       return Role.valueOf(role);
@@ -160,6 +166,12 @@ public class OrganizationInviteService {
     }
   }
 
+  /**
+   * Validates the requested invite expiry window against the allowed bounds.
+   *
+   * @param expiresInDays requested number of days before expiry
+   * @return validated expiry window in days
+   */
   private int validateExpiryDays(Integer expiresInDays) {
     if (expiresInDays == null || expiresInDays < MIN_EXPIRY_DAYS || expiresInDays > MAX_EXPIRY_DAYS) {
       throw new IllegalArgumentException(
@@ -169,6 +181,14 @@ public class OrganizationInviteService {
     return expiresInDays;
   }
 
+  /**
+   * Resolves which organization the invite should target based on the caller's
+   * role and organization membership.
+   *
+   * @param organizationId optional requested organization identifier
+   * @param currentUser authenticated inviter
+   * @return resolved target organization
+   */
   private Organization resolveTargetOrganization(Long organizationId, AppUser currentUser) {
     if (currentUser.getRoles().contains(Role.ROLE_ADMIN)) {
       if (currentUser.getOrganization() == null) {
@@ -198,6 +218,14 @@ public class OrganizationInviteService {
         ));
   }
 
+  /**
+   * Validates whether the current user is allowed to create the requested
+   * invite for the resolved organization.
+   *
+   * @param currentUser authenticated inviter
+   * @param roleToAssign invited role to be granted on acceptance
+   * @param targetOrganization resolved invite target organization
+   */
   private void validateCreatePermission(AppUser currentUser, Role roleToAssign, Organization targetOrganization) {
     if (currentUser.getRoles().contains(Role.ROLE_ADMIN)) {
       if (roleToAssign == Role.ROLE_ADMIN) {
@@ -220,6 +248,12 @@ public class OrganizationInviteService {
     throw new IllegalArgumentException("Only admins and managers can create organization invites");
   }
 
+  /**
+   * Resolves the final role set granted when an invite is accepted.
+   *
+   * @param invitedRole role encoded in the invite
+   * @return roles to persist on the accepted user account
+   */
   private Set<Role> resolveAcceptedRoles(Role invitedRole) {
     return switch (invitedRole) {
       case ROLE_MANAGER -> new HashSet<>(Set.of(Role.ROLE_MANAGER, Role.ROLE_STAFF));
@@ -229,11 +263,25 @@ public class OrganizationInviteService {
     };
   }
 
+  /**
+   * Reloads an authenticated user from the database to ensure the service
+   * works with a managed entity instance.
+   *
+   * @param userId authenticated user identifier
+   * @return persistent user entity
+   */
   private AppUser loadUser(Long userId) {
     return appUserRepository.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("Authenticated user was not found"));
   }
 
+  /**
+   * Maps an organization invite entity to the response returned by invite
+   * create and list operations.
+   *
+   * @param invite persisted organization invite
+   * @return serialized invite response
+   */
   private OrganizationInviteResponse mapToResponse(OrganizationInvite invite) {
     return new OrganizationInviteResponse(
         invite.getId(),

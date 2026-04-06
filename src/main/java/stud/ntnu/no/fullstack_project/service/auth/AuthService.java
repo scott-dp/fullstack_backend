@@ -239,7 +239,13 @@ public class AuthService {
     log.info("Email verified for user username={} email={}", user.getUsername(), user.getEmail());
     return new VerificationResponse("Email verified successfully. You can now log in.");
   }
-
+  /**
+   * Resolves the invited admin account referenced by a setup token and returns
+   * the prefilled information needed by the setup page.
+   *
+   * @param token one-time admin setup token
+   * @return setup information for the invited admin account
+   */
   public AdminSetupInfoResponse getAdminSetupInfo(String token) {
     AppUser user = findPendingAdminSetup(token);
     return new AdminSetupInfoResponse(
@@ -250,6 +256,16 @@ public class AuthService {
     );
   }
 
+  /**
+   * Finalizes the first-time setup flow for an invited admin account.
+   *
+   * <p>The method validates the setup token, stores the chosen password,
+   * enables the account, marks the email as verified, and clears any setup
+   * or verification tokens that should no longer be reusable.</p>
+   *
+   * @param request token and password submitted from the setup form
+   * @return success message for the completed setup flow
+   */
   @Transactional
   public MessageResponse completeAdminSetup(CompleteAdminSetupRequest request) {
     AppUser user = findPendingAdminSetup(request.token());
@@ -321,14 +337,35 @@ public class AuthService {
     log.debug("Auth cookie updated cookieName={} secure={} maxAgeMillis={}", cookieName, cookieSecure, maxAgeMillis);
   }
 
+  /**
+   * Normalizes an email address for repository lookups and uniqueness checks.
+   *
+   * @param email raw email input
+   * @return trimmed, lowercase email value
+   */
   private String normalizeEmail(String email) {
     return email.trim().toLowerCase(Locale.ROOT);
   }
 
+  /**
+   * Builds the frontend verification URL for a registration token.
+   *
+   * @param token email verification token
+   * @return absolute frontend verification link
+   */
   private String buildVerificationLink(String token) {
     return frontendUrl + "/verify-email?token=" + token;
   }
 
+  /**
+   * Finds a still-pending invited admin account by setup token.
+   *
+   * <p>The token must exist, must not be expired, must still belong to a
+   * disabled account, and must be tied to an admin role.</p>
+   *
+   * @param token one-time admin setup token
+   * @return invited admin account awaiting completion
+   */
   private AppUser findPendingAdminSetup(String token) {
     if (token == null || token.isBlank()) {
       throw new IllegalArgumentException("Setup token is required");
@@ -350,6 +387,11 @@ public class AuthService {
     return user;
   }
 
+  /**
+   * Generates a six-digit one-time login code for email-based sign-in.
+   *
+   * @return zero-padded six-digit login code
+   */
   private String generateEmailLoginCode() {
     return String.format("%06d", RANDOM.nextInt(1_000_000));
   }

@@ -16,7 +16,6 @@ import java.util.List;
  * @param documentNumber     document / invoice number
  * @param receivedByUsername username of the person who received the delivery
  * @param notes              additional notes
- * @param attachmentId       attachment identifier
  * @param items              line items
  * @param createdAt          creation timestamp
  */
@@ -42,9 +41,6 @@ public record DeliveryRecordResponse(
 
     @Schema(description = "Additional notes about the delivery.")
     String notes,
-
-    @Schema(description = "Attachment identifier for supporting documents.")
-    Long attachmentId,
 
     @ArraySchema(schema = @Schema(implementation = DeliveryItemResponse.class))
     List<DeliveryItemResponse> items,

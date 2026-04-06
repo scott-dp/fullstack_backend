@@ -101,7 +101,7 @@ class DeliveryServiceTest {
         "Atlantic Salmon Fillet", "50", "kg", "LOT-2025-0042", "2025-03-15", null
     );
     CreateDeliveryRequest request = new CreateDeliveryRequest(
-        1L, "2025-02-20", "INV-2025-100", null, null, List.of(itemReq)
+        1L, "2025-02-20", "INV-2025-100", null, List.of(itemReq)
     );
 
     when(supplierRepository.findById(1L)).thenReturn(Optional.of(testSupplier));
@@ -132,7 +132,7 @@ class DeliveryServiceTest {
   @Test
   void createDelivery_supplierNotFound_throwsIllegalArgumentException() {
     CreateDeliveryRequest request = new CreateDeliveryRequest(
-        999L, "2025-02-20", null, null, null, List.of()
+        999L, "2025-02-20", null, null, List.of()
     );
 
     when(supplierRepository.findById(999L)).thenReturn(Optional.empty());

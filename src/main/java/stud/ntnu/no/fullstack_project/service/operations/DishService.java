@@ -211,6 +211,12 @@ public class DishService {
     return buildDishResponse(dish);
   }
 
+  /**
+   * Permanently deletes a dish together with its ingredient links and allergen
+   * overrides.
+   *
+   * @param id the dish identifier
+   */
   @Transactional
   public void deleteDish(Long id) {
     Dish dish = dishRepository.findById(id)
@@ -388,6 +394,12 @@ public class DishService {
     );
   }
 
+  /**
+   * Marks a dish's allergen approval as no longer valid after a change that
+   * may affect its derived allergen result.
+   *
+   * @param dish dish whose approval state should be invalidated
+   */
   private void invalidateApproval(Dish dish) {
     dish.setAllergenApprovalValid(false);
   }
